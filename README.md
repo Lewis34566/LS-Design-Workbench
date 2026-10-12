@@ -2,8 +2,16 @@
 
 > **LS-DW = Lewis South · Design Workbench** · [GitHub 仓库](https://github.com/Lewis34566/LS-Design-Workbench)
 
-用于练习**上海高校计算机一级 DW（网页制作）操作题**的桌面工具。
-技术栈：Electron + 原生 HTML/CSS/JS（无任何框架）。
+用于练习**上海高校计算机一级 DW（网页制作）操作题**的网页编辑器。
+技术栈：Electron（桌面版）+ 原生 HTML/CSS/JS，无任何框架。
+
+## 🌐 在线使用（无需安装）
+
+**直达网址：<https://lewis34566.github.io/LS-Design-Workbench/>**
+
+纯浏览器运行，无需安装 Node.js：打开即用，文件保存在访问者自己的浏览器里，
+可用「导出 HTML」下载带走。支持手机操作（面板最小化 / 整体缩放 / 长按菜单）。
+在线版源码在本仓库 [`docs/`](./docs/) 目录。
 
 ## 快速开始
 
