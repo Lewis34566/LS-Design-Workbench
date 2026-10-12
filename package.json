@@ -1,0 +1,36 @@
+{
+  "name": "ls-dw",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LS的DW —— 类 Dreamweaver 网页可视化编辑器（上海高校计算机一级 DW 操作练习）",
+  "main": "main.js",
+  "scripts": {
+    "start": "set ELECTRON_RUN_AS_NODE=&& electron .",
+    "test": "node tests/run-all.mjs",
+    "test:main": "node tests/verify-main-paths.mjs",
+    "test:advanced": "node tests/verify-advanced.mjs",
+    "dist": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "playwright-core": "^1.49.1"
+  },
+  "build": {
+    "appId": "com.ls.dw",
+    "productName": "LS的DW编辑器",
+    "directories": { "output": "dist" },
+    "files": ["main.js", "preload.js", "renderer/**/*", "package.json"],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "LS的DW"
+    }
+  }
+}
