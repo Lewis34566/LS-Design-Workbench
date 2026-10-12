@@ -1,0 +1,250 @@
+/* ============================================================
+   mobile.css — 手机 / 窄屏适配层
+   配合 js/mobile.js 使用：
+     · 窄屏时三栏改为纵向堆叠，可滚动
+     · 每个面板右上角有「—」最小化按钮
+     · 底部控制条：面板开关 / 整体缩放 / 收起展开全部
+   桌面宽屏下本文件几乎不产生任何视觉影响。
+   ============================================================ */
+
+/* 手机专用控件默认全部隐藏，只在窄屏显示 */
+.m-toggle,
+#m-bar,
+#m-menu { display: none; }
+#design-pane > .m-head { display: none; }
+
+/* ---------------- 窄屏（手机 / 竖屏平板） ---------------- */
+@media (max-width: 900px) {
+
+  /* ---------- 工具栏：横向滚动，不再换行挤成两行 ---------- */
+  #toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 6px 8px;
+    gap: 5px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  #toolbar::-webkit-scrollbar { display: none; }
+  #toolbar .brand { display: none; }
+  #toolbar .sep { flex: 0 0 auto; }
+  #toolbar button { flex: 0 0 auto; padding: 6px 10px; min-height: 34px; }
+  #toolbar .seg { flex: 0 0 auto; }
+  #doc-name {
+    flex: 0 0 auto; max-width: 30vw;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* ---------- 顶部提示条收紧 ---------- */
+  #webnotice { font-size: 11px; padding: 5px 8px; gap: 6px; }
+
+  /* ---------- 状态栏隐藏（信息合并到底部控制条） ---------- */
+  #statusbar { display: none; }
+
+  /* ---------- 主体：三栏 → 纵向堆叠，整页可上下滚 ---------- */
+  #main {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  #left, #right {
+    width: 100%;
+    flex: 0 0 auto;
+    border: 0;
+    border-top: 1px solid var(--line);
+  }
+  #center { flex: 0 0 auto; min-height: 0; }
+  #stage { flex-direction: column; }
+
+  /* 各面板给一个舒适的初始高度，内部自行滚动 */
+  /* design-pane 原为 row 方向：注入标题条后会和 iframe 横排，必须改竖排 */
+  #design-pane { flex: 0 0 auto; flex-direction: column; height: 56vh; min-height: 220px; }
+  #design-frame { width: 100%; }
+  #code-pane   { flex: 0 0 auto; height: 42vh; min-height: 170px; border-left: 0; border-top: 1px solid var(--line); }
+  #left        { height: 46vh; min-height: 190px; }
+  #right       { height: 52vh; min-height: 210px; }
+
+  /* 单栏模式时独占更高空间 */
+  body[data-mode="design"] #design-pane { height: 74vh; }
+  body[data-mode="code"]   #code-pane   { height: 74vh; }
+
+  /* 面板内部滚动，避免撑破外层的纵向滚动 */
+  #left .tabpane, #right #props { min-height: 0; }
+  #css-editor { height: 200px; }
+
+  /* 标签页加大，手指好点 */
+  #left .tabs button { padding: 10px 0; font-size: 14px; }
+
+  /* ---------- 最小化（m-min）：只留一条标题栏 ---------- */
+  #left.m-min, #right.m-min {
+    height: auto;
+    min-height: 0;
+  }
+  #left.m-min .tabpane, #right.m-min #props { display: none !important; }
+  #left.m-min .tabs { border-bottom: 0; }
+
+  #design-pane.m-min, #code-pane.m-min {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  #design-pane.m-min #design-frame,
+  #code-pane.m-min #code-scroll { display: none !important; }
+  #design-pane.m-min > .m-head,
+  #code-pane.m-min .code-head { border-bottom: 0; }
+
+  /* ---------- 面板头部的「—」按钮 ---------- */
+  .m-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 32px;
+    height: 26px;
+    min-width: 32px;
+    padding: 0;
+    font-size: 15px;
+    line-height: 1;
+    border-radius: 6px;
+    background: var(--panel2);
+    color: var(--mut);
+    border: 1px solid var(--line);
+  }
+  .m-toggle:active { background: var(--acc); color: #fff; }
+
+  /* 左栏：tabs 里塞进按钮 */
+  #left .tabs { align-items: stretch; }
+  #left .tabs .m-toggle { margin: 5px 6px 5px 4px; align-self: center; }
+
+  /* 右栏：标题栏变成 flex 行 */
+  .props-title { display: flex; align-items: center; gap: 6px; }
+  .props-title .m-sp { flex: 1; }
+
+  /* 代码区标题栏 */
+  .code-head .m-toggle { margin-left: 4px; }
+
+  /* 设计视图自建的标题条 */
+  #design-pane > .m-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 4px 8px 4px 12px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--mut);
+  }
+  #design-pane > .m-head .m-title { font-weight: 600; }
+  #design-pane > .m-head .m-sp { flex: 1; }
+
+  /* ---------- 触屏下可选中文本（body 全局禁止了 user-select） ---------- */
+  #code-ta, #css-editor, input, textarea, .dlg-body { user-select: text; -webkit-user-select: text; }
+
+  /* ---------- 右键菜单：手机上无法 hover，子菜单改常显 ---------- */
+  #ctxmenu { min-width: 200px; max-width: 86vw; max-height: 70vh; overflow: auto; }
+  #ctxmenu .ctx-item { padding: 10px 14px; }
+  #ctxmenu .ctx-item > .ctx-list {
+    display: block !important;
+    position: static;
+    left: auto; top: auto;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0 0 0 10px;
+    margin: 6px 0 2px 8px;
+    border-left: 2px solid var(--line);
+    min-width: 0;
+  }
+  #ctxmenu .ctx-item > .ctx-list .ctx-item { padding: 8px 10px; }
+  #ctxmenu .ctx-arrow { transform: rotate(90deg); }
+
+  /* ---------- 对话框适配小屏 ---------- */
+  .dlg { width: auto !important; max-width: 94vw; max-height: 88vh; }
+  .dlg-btns { flex-wrap: wrap; }
+  .dlg-btns button { flex: 1 1 auto; min-width: 84px; padding: 8px 10px; min-height: 38px; }
+
+  /* ---------- 底部控制条 ---------- */
+  #m-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    padding: 6px 8px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--mut);
+  }
+  #m-bar button {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+  #m-bar .m-zbtn { width: 40px; padding: 4px 0; font-size: 17px; text-align: center; }
+  #m-zoom-val {
+    min-width: 48px;
+    text-align: center;
+    color: var(--tx);
+    font-variant-numeric: tabular-nums;
+  }
+  #m-bar .m-sp { flex: 1; }
+
+  /* ---------- 面板开关下拉菜单 ---------- */
+  #m-menu {
+    display: block;
+    position: fixed;
+    z-index: 1200;
+    left: 8px;
+    bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .5);
+    padding: 6px;
+    min-width: 210px;
+    max-width: 88vw;
+  }
+  #m-menu .m-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--tx);
+  }
+  #m-menu .m-item:active { background: var(--panel2); }
+  #m-menu .m-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--acc); flex: 0 0 auto;
+  }
+  #m-menu .m-item.off .m-dot { background: #5b606e; }
+  #m-menu .m-item .m-st { margin-left: auto; font-size: 11px; color: var(--mut); }
+  #m-menu .m-tip {
+    padding: 6px 10px 4px;
+    font-size: 11px;
+    color: #6d7380;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 4px;
+  }
+
+  /* 缩放后允许页面整体滚动，保证缩小的界面可以全部看到 */
+  html.dw-zoomed, html.dw-zoomed body { overflow: auto; }
+}
+
+/* 超小屏再收一点高度 */
+@media (max-width: 430px) {
+  #left { height: 48vh; }
+  #right { height: 54vh; }
+  #design-pane { height: 52vh; }
+  #code-pane { height: 40vh; }
+  body[data-mode="design"] #design-pane,
+  body[data-mode="code"] #code-pane { height: 70vh; }
+}

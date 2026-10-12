@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LS的DW · 网页版</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e6fd9'/%3E%3Cpath d='M8 9h4l4 14 4-14h4' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/app.css">
+<!-- 手机 / 窄屏适配层：只在窄屏生效，桌面端不受影响 -->
+<link rel="stylesheet" href="css/mobile.css">
+<style>
+  /* 网页版附加样式：顶部提示条 + 品牌标记 */
+  #webnotice{
+    display:flex;align-items:center;gap:10px;flex:0 0 auto;
+    padding:6px 12px;font-size:12px;line-height:1.5;
+    background:#1f3c5f;color:#cfe2ff;border-bottom:1px solid #14283f;
+  }
+  #webnotice b{color:#8ec5ff;font-weight:600}
+  #webnotice .sp{flex:1}
+  #webnotice button{
+    background:transparent;border:1px solid #3d6a9c;color:#9fc7f0;
+    padding:2px 8px;border-radius:4px;font-size:12px;cursor:pointer;
+  }
+  #webnotice button:hover{background:#2a4d76;color:#fff}
+  body.dw-hide-notice #webnotice{display:none}
+  .brand-tag{
+    font-size:10px;font-weight:400;padding:1px 6px;border-radius:8px;margin-left:6px;
+    background:#2f6fb3;color:#dceaff;vertical-align:middle;
+  }
+  #toolbar #btn-export{border-color:#3d8b5f;color:#b6e6c8}
+</style>
+</head>
+<body data-mode="split">
+<div id="app">
+  <!-- 顶部工具栏 -->
+  <header id="toolbar">
+    <div class="brand">LS的DW<span class="brand-tag">网页版</span></div>
+    <button id="btn-new" title="新建页面 (Ctrl+N)">新建</button>
+    <button id="btn-open" title="打开网页 (Ctrl+O)">打开</button>
+    <button id="btn-open-site" title="打开站点文件夹">打开站点</button>
+    <button id="btn-save" title="保存 (Ctrl+S)">保存</button>
+    <button id="btn-saveas" title="另存为 (Ctrl+Shift+S)">另存为</button>
+    <button id="btn-export" title="把当前页面导出成 HTML 文件下载">导出 HTML</button>
+    <button id="btn-help" title="查看使用说明">说明</button>
+    <button id="btn-preview" title="在浏览器中预览">浏览器预览</button>
+    <span class="sep"></span>
+    <div class="seg">
+      <button id="btn-mode-code" data-mode="code">代码</button>
+      <button id="btn-mode-split" data-mode="split" class="on">拆分</button>
+      <button id="btn-mode-design" data-mode="design">设计</button>
+    </div>
+    <button id="btn-refresh" title="刷新设计视图 / 应用代码修改 (F5)">↻</button>
+    <span class="sep"></span>
+    <button id="btn-undo" title="撤销 (Ctrl+Z)">↶</button>
+    <button id="btn-redo" title="重做 (Ctrl+Y)">↷</button>
+    <span class="sp"></span>
+    <span id="doc-name">未命名-1</span>
+    <span id="dirty-dot" class="hidden" title="有未保存的修改">●</span>
+  </header>
+
+  <!-- 网页版提示条 -->
+  <div id="webnotice">
+    <span><b>网页版</b>：这是类 Dreamweaver 的可视化网页编辑器，用于练习计算机一级「网页制作」操作题。文件保存在你自己的浏览器里，可用「导出 HTML」下载带走。</span>
+    <span class="sp"></span>
+    <button id="notice-help">看说明</button>
+    <button id="notice-close">知道了</button>
+  </div>
+
+  <!-- 三栏主体 -->
+  <div id="main">
+    <!-- 左栏：插入 / 文件 / CSS -->
+    <aside id="left">
+      <div class="tabs">
+        <button id="tab-btn-insert" data-tab="insert" class="on">插入</button>
+        <button id="tab-btn-files" data-tab="files">文件</button>
+        <button id="tab-btn-css" data-tab="css">CSS</button>
+      </div>
+      <div id="tab-insert" class="tabpane"></div>
+      <div id="tab-files" class="tabpane hidden">
+        <div class="row-2">
+          <button id="btn-new-page" class="grow">＋ 新建页面</button>
+        </div>
+        <div id="file-tree"></div>
+      </div>
+      <div id="tab-css" class="tabpane hidden">
+        <div class="css-head">
+          <span id="css-target-label">内部样式表</span>
+          <button id="btn-css-back" class="hidden" title="返回内部样式表">↩</button>
+        </div>
+        <div class="row-2">
+          <button id="btn-css-new-rule">＋ 新建规则</button>
+          <button id="btn-css-link">链接外部CSS</button>
+        </div>
+        <div class="row-2">
+          <button id="btn-css-new-file">＋ 新建CSS文件</button>
+          <button id="btn-css-save" disabled>保存外部CSS</button>
+        </div>
+        <textarea id="css-editor" spellcheck="false" placeholder="/* 内部样式表（<style> 内容） */"></textarea>
+      </div>
+    </aside>
+
+    <!-- 中间：设计视图 + 代码视图 -->
+    <div id="center">
+      <div id="stage">
+        <div id="design-pane"><iframe id="design-frame" title="设计视图"></iframe></div>
+        <div id="code-pane">
+          <div class="code-head">
+            <span>源代码</span>
+            <span id="code-hint" class="hint"></span>
+            <span class="sp"></span>
+            <button id="btn-apply-code" class="hidden">应用代码</button>
+          </div>
+          <div id="code-scroll">
+            <div class="code-row">
+              <div id="code-gutter">1</div>
+              <div class="code-inner">
+                <pre id="code-pre"></pre>
+                <textarea id="code-ta" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右栏：属性面板 -->
+    <aside id="right">
+      <div class="props-title">属性面板</div>
+      <div id="props"></div>
+    </aside>
+  </div>
+
+  <!-- 状态栏 -->
+  <footer id="statusbar">
+    <span id="crumb">未选中</span>
+    <span class="sp"></span>
+    <span id="st-dims"></span>
+    <span id="st-mode"></span>
+    <span id="st-enc">UTF-8</span>
+  </footer>
+</div>
+
+<datalist id="class-list"></datalist>
+<div id="ctxmenu" class="hidden"></div>
+<div id="dlg-root"></div>
+<div id="toast"></div>
+
+<!-- 网页版兼容层必须在 dialogs.js 之前加载（它提供 window.dwAPI） -->
+<script src="js/web-shim.js"></script>
+<script src="js/dialogs.js"></script>
+<script src="js/state.js"></script>
+<script src="js/undo.js"></script>
+<script src="js/editor-core.js"></script>
+<script src="js/dom-ops.js"></script>
+<script src="js/serialize.js"></script>
+<script src="js/code-view.js"></script>
+<script src="js/properties.js"></script>
+<script src="js/insert-panel.js"></script>
+<script src="js/site-manager.js"></script>
+<script src="js/app.js"></script>
+<script src="js/web-ui.js"></script>
+<!-- 手机端交互：面板最小化 / 缩放 / 长按菜单（必须最后加载） -->
+<script src="js/mobile.js"></script>
+</body>
+</html>
