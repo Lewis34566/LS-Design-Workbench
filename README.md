@@ -1,6 +1,6 @@
 # LS的DW —— 类 Dreamweaver 网页可视化编辑器
 
-> **LS-DW = Lewis South · Design Workbench**（GitHub 仓库名建议：`LS-Design-Workbench`）
+> **LS-DW = Lewis South · Design Workbench** · [GitHub 仓库](https://github.com/Lewis34566/LS-Design-Workbench)
 
 用于练习**上海高校计算机一级 DW（网页制作）操作题**的桌面工具。
 技术栈：Electron + 原生 HTML/CSS/JS（无任何框架）。
