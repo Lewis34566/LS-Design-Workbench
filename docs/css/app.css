@@ -1,4 +1,4 @@
-/* app.css — LS的DW 编辑器界面（深色主题） */
+/* app.css - LS's DW editor UI (dark theme) */
 :root {
   --bg: #26282e;
   --panel: #2c2e35;
@@ -41,7 +41,7 @@ select { max-width: 100%; }
 
 #app { height: 100%; display: flex; flex-direction: column; }
 
-/* ---------- 工具栏 ---------- */
+/* ---------- Toolbar ---------- */
 #toolbar {
   display: flex; gap: 6px; align-items: center;
   padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line);
@@ -55,7 +55,7 @@ select { max-width: 100%; }
 #doc-name { color: var(--mut); }
 #dirty-dot { color: #ffd166; font-size: 14px; }
 
-/* ---------- 主体三栏 ---------- */
+/* ---------- Main three-column layout ---------- */
 #main { flex: 1; display: grid; grid-template-columns: 218px 1fr 286px; min-height: 0; }
 aside { background: var(--panel); min-height: 0; display: flex; flex-direction: column; }
 #left { border-right: 1px solid var(--line); }
@@ -70,7 +70,7 @@ aside { background: var(--panel); min-height: 0; display: flex; flex-direction: 
 .row-2 { display: flex; gap: 6px; margin-bottom: 8px; }
 .row-2 .grow { flex: 1; }
 
-/* 插入面板 */
+/* Insert panel */
 .ins-group { border: 1px solid var(--line); border-radius: 6px; margin-bottom: 8px; overflow: hidden; }
 .ins-group summary {
   cursor: pointer; padding: 6px 10px; font-weight: 600; background: var(--panel2);
@@ -79,7 +79,7 @@ aside { background: var(--panel); min-height: 0; display: flex; flex-direction: 
 .ins-body { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; }
 .ins-btn { font-size: 12px; padding: 4px 8px; }
 
-/* 文件树 */
+/* File tree */
 #file-tree { margin-top: 8px; }
 #file-tree ul { list-style: none; margin: 0; padding-left: 14px; }
 #file-tree li { margin: 2px 0; }
@@ -87,14 +87,14 @@ aside { background: var(--panel); min-height: 0; display: flex; flex-direction: 
 .ft-name:hover { background: var(--panel2); }
 li.current > .ft-name { background: rgba(61, 139, 255, .22); color: #9cc3ff; }
 .ft-dir > .ft-name { color: #e8c06a; }
-.ft-file .ft-name::before { content: "📄 "; font-size: 11px; }
-.ft-dir > .ft-name::before { content: "📁 "; }
-.ft-file.ext-html .ft-name::before { content: "🌐 "; }
-.ft-file.ext-css .ft-name::before { content: "🎨 "; }
-.ft-file.ext-js .ft-name::before { content: "📜 "; }
+.ft-file .ft-name::before { content: "\01F4C4  "; font-size: 11px; }
+.ft-dir > .ft-name::before { content: "\01F4C1  "; }
+.ft-file.ext-html .ft-name::before { content: "\01F310  "; }
+.ft-file.ext-css .ft-name::before { content: "\01F3A8  "; }
+.ft-file.ext-js .ft-name::before { content: "\01F4DC  "; }
 img.ft-img { display: none; }
 
-/* CSS 面板 */
+/* CSS panel */
 .css-head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
 #css-target-label { font-weight: 600; color: var(--acc); }
 #css-editor {
@@ -102,7 +102,7 @@ img.ft-img { display: none; }
   font: 12px/1.5 Consolas, "Courier New", monospace;
 }
 
-/* ---------- 中间编辑区 ---------- */
+/* ---------- Center editing area ---------- */
 #center { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 #stage { flex: 1; display: flex; min-height: 0; }
 #design-pane { flex: 1; min-width: 0; background: #454a54; display: flex; }
@@ -129,8 +129,8 @@ body[data-mode="split"] #code-pane { display: flex; }
   padding: 12px 10px 12px 12px; text-align: right;
   font: 13px/1.55 Consolas, "Courier New", monospace; color: #4b5263;
   user-select: none; border-right: 1px solid #2a2d34;
-  white-space: pre;   /* 关键：行号必须逐行换行显示，否则整列数字拼成一行把代码区挤出屏幕 */
-  flex: 0 0 auto;     /* 行号列宽度只由内容决定，不允许被 flex 拉伸 */
+  white-space: pre;   /* Important: line numbers must wrap one per line, otherwise the whole column joins into one line and pushes the code area off screen */
+  flex: 0 0 auto;     /* The gutter width is determined by its content only and must not be stretched by flex */
 }
 .code-inner { position: relative; flex: 1; }
 #code-pre {
@@ -149,7 +149,7 @@ body[data-mode="split"] #code-pane { display: flex; }
 .tk-t { color: #61afef; } .tk-a { color: #d19a66; } .tk-s { color: #98c379; }
 .tk-c { color: #5c6370; } .tk-d { color: #c678dd; }
 
-/* ---------- 属性面板 ---------- */
+/* ---------- Properties panel ---------- */
 .props-title { padding: 8px 12px; font-weight: 600; border-bottom: 1px solid var(--line); color: var(--mut); }
 #props { flex: 1; overflow: auto; padding: 10px; min-height: 0; }
 .prop-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
@@ -180,7 +180,7 @@ body[data-mode="split"] #code-pane { display: flex; }
 .btn-row .prop-btn { flex: 1; min-width: 60px; font-size: 12px; }
 .hint { color: var(--mut); font-size: 12px; }
 
-/* ---------- 状态栏 ---------- */
+/* ---------- Status bar ---------- */
 #statusbar {
   display: flex; gap: 14px; align-items: center;
   padding: 4px 12px; background: var(--panel); border-top: 1px solid var(--line);
@@ -193,7 +193,7 @@ body[data-mode="split"] #code-pane { display: flex; }
 #crumb .crumb:hover { background: var(--panel2); }
 #crumb { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ---------- 右键菜单 ---------- */
+/* ---------- Context menu ---------- */
 #ctxmenu {
   position: fixed; z-index: 1000; background: var(--panel);
   border: 1px solid var(--line); border-radius: 6px; padding: 4px 0;
@@ -213,7 +213,7 @@ body[data-mode="split"] #code-pane { display: flex; }
 }
 .ctx-item:hover > .ctx-list { display: block; }
 
-/* ---------- 对话框 ---------- */
+/* ---------- Dialogs ---------- */
 .dlg-overlay {
   position: fixed; inset: 0; z-index: 1100; background: rgba(10, 12, 16, .55);
   display: flex; align-items: center; justify-content: center;
@@ -239,7 +239,7 @@ body[data-mode="split"] #code-pane { display: flex; }
 .nav-row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
 .nav-row input { flex: 1; min-width: 0; }
 
-/* ---------- 其他 ---------- */
+/* ---------- Other ---------- */
 #toast {
   position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
   background: #17191e; border: 1px solid var(--line); color: var(--tx);

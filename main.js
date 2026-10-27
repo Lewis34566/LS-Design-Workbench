@@ -1,15 +1,15 @@
-// main.js — Electron 主进程：窗口、菜单、文件系统与对话框 IPC
+// main.js - Electron main process: window, menus, file system and dialog IPC
 const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
 const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
 const os = require('os');
 
-// 禁用 GPU 硬件加速：编辑器以静态 HTML 为主，软渲染更稳
-// （修复部分 Windows 机器上渲染进程间歇性崩溃的问题）
+// Disable GPU hardware acceleration: the editor mostly renders static HTML, and software rendering is more stable
+// (fixes intermittent renderer crashes on some Windows machines)
 app.disableHardwareAcceleration();
 
-// 命令行参数：--site=<站点文件夹> --file=<要打开的网页>（也用于自动化测试）
+// Command-line arguments: --site=<site folder> --file=<page to open> (also used by automated tests)
 function parseArgs(argv) {
   const args = {};
   for (const a of argv) {
@@ -27,69 +27,69 @@ function send(action) {
 }
 
 const INSERT_MENU = [
-  ['段落', 'p'], ['标题 1', 'h1'], ['标题 2', 'h2'], ['标题 3', 'h3'],
-  ['标题 4', 'h4'], ['标题 5', 'h5'], ['标题 6', 'h6'],
-  ['换行 <br>', 'br'], ['空格 &nbsp;', 'nbsp'],
-  ['© 版权', 'copy'], ['® 注册商标', 'reg'], ['™ 商标', 'tm'], ['¥ 人民币', 'yen'],
-  ['插入日期…', 'date'],
-  ['项目列表', 'ul'], ['编号列表', 'ol'],
-  ['插入图片…', 'img'],
-  ['超链接…', 'link'], ['命名锚记…', 'anchor'], ['邮件链接…', 'mailto'], ['空链接', 'emptylink'],
-  ['插入表格…', 'table'],
-  ['水平线', 'hr'], ['滚动文字', 'marquee'], ['视频…', 'video'], ['音频…', 'audio'], ['背景音乐…', 'bgsound'],
-  ['表单', 'form'], ['文本框', 'input-text'], ['密码框', 'input-password'], ['文本区域', 'textarea'],
-  ['单选按钮', 'radio'], ['复选框', 'checkbox'], ['下拉菜单', 'select'], ['提交按钮', 'submit'], ['重置按钮', 'reset'],
-  ['框架 iframe…', 'iframe'], ['导航条…', 'navbar'],
+  ['Paragraph', 'p'], ['Heading 1', 'h1'], ['Heading 2', 'h2'], ['Heading 3', 'h3'],
+  ['Heading 4', 'h4'], ['Heading 5', 'h5'], ['Heading 6', 'h6'],
+  ['Line break <br>', 'br'], ['Non-breaking space', 'nbsp'],
+  ['Copyright', 'copy'], ['Registered trademark', 'reg'], ['Trademark', 'tm'], ['Yen sign', 'yen'],
+  ['Insert date...', 'date'],
+  ['Bulleted list', 'ul'], ['Numbered list', 'ol'],
+  ['Insert image...', 'img'],
+  ['Hyperlink...', 'link'], ['Named anchor...', 'anchor'], ['Email link...', 'mailto'], ['Empty link', 'emptylink'],
+  ['Insert table...', 'table'],
+  ['Horizontal rule', 'hr'], ['Scrolling text', 'marquee'], ['Video...', 'video'], ['Audio...', 'audio'], ['Background music...', 'bgsound'],
+  ['Form', 'form'], ['Text field', 'input-text'], ['Password field', 'input-password'], ['Text area', 'textarea'],
+  ['Radio button', 'radio'], ['Checkbox', 'checkbox'], ['Drop-down menu', 'select'], ['Submit button', 'submit'], ['Reset button', 'reset'],
+  ['Frame (iframe)...', 'iframe'], ['Navigation bar...', 'navbar'],
 ];
 
 function buildMenu() {
   const template = [
     {
-      label: '文件', submenu: [
-        { label: '新建页面', click: send('new') },
-        { label: '打开网页…', click: send('open') },
-        { label: '打开站点文件夹…', click: send('open-site') },
+      label: 'File', submenu: [
+        { label: 'New Page', click: send('new') },
+        { label: 'Open Page...', click: send('open') },
+        { label: 'Open Site Folder...', click: send('open-site') },
         { type: 'separator' },
-        { label: '保存', click: send('save') },
-        { label: '另存为…', click: send('save-as') },
+        { label: 'Save', click: send('save') },
+        { label: 'Save As...', click: send('save-as') },
         { type: 'separator' },
-        { label: '在浏览器中预览', click: send('preview') },
+        { label: 'Preview in Browser', click: send('preview') },
         { type: 'separator' },
-        { role: 'quit', label: '退出' },
+        { role: 'quit', label: 'Quit' },
       ],
     },
     {
-      label: '编辑', submenu: [
-        { label: '撤销', click: send('undo') },
-        { label: '重做', click: send('redo') },
+      label: 'Edit', submenu: [
+        { label: 'Undo', click: send('undo') },
+        { label: 'Redo', click: send('redo') },
         { type: 'separator' },
-        { label: '删除元素', click: send('delete') },
-        { label: '上移', click: send('move-up') },
-        { label: '下移', click: send('move-down') },
+        { label: 'Delete Element', click: send('delete') },
+        { label: 'Move Up', click: send('move-up') },
+        { label: 'Move Down', click: send('move-down') },
       ],
     },
     {
-      label: '视图', submenu: [
-        { label: '代码视图', click: send('mode-code') },
-        { label: '拆分视图', click: send('mode-split') },
-        { label: '设计视图', click: send('mode-design') },
+      label: 'View', submenu: [
+        { label: 'Code View', click: send('mode-code') },
+        { label: 'Split View', click: send('mode-split') },
+        { label: 'Design View', click: send('mode-design') },
         { type: 'separator' },
-        { label: '刷新设计视图（应用代码修改）', click: send('refresh-design') },
+        { label: 'Refresh Design View (Apply Code Changes)', click: send('refresh-design') },
       ],
     },
     {
-      label: '插入', submenu: INSERT_MENU.map(([label, type]) => ({ label, click: send('insert:' + type) })),
+      label: 'Insert', submenu: INSERT_MENU.map(([label, type]) => ({ label, click: send('insert:' + type) })),
     },
     {
-      label: '帮助', submenu: [
-        { label: '打开使用说明 (README)', click: () => shell.openPath(path.join(__dirname, 'README.md')) },
+      label: 'Help', submenu: [
+        { label: 'Open Usage Instructions (README)', click: () => shell.openPath(path.join(__dirname, 'README.md')) },
         { type: 'separator' },
-        { label: '开发者工具', click: () => mainWindow && mainWindow.webContents.openDevTools() },
+        { label: 'Developer Tools', click: () => mainWindow && mainWindow.webContents.openDevTools() },
         {
-          label: '关于 LS的DW', click: () => dialog.showMessageBox(mainWindow, {
-            type: 'info', title: '关于', message: 'LS的DW 1.0.0',
-            detail: '类 Dreamweaver 网页可视化编辑器\n用于上海高校计算机一级 DW 操作练习\n技术栈：Electron + 原生 HTML/CSS/JS',
-            buttons: ['好'],
+          label: "About LS's DW", click: () => dialog.showMessageBox(mainWindow, {
+            type: 'info', title: 'About', message: "LS's DW 1.0.0",
+            detail: 'Dreamweaver-style visual web page editor\nFor Shanghai college Computer Level 1 DW operation practice\nTech stack: Electron + vanilla HTML/CSS/JS',
+            buttons: ['OK'],
           }),
         },
       ],
@@ -102,7 +102,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 900, minWidth: 1000, minHeight: 640,
     backgroundColor: '#26282e',
-    title: 'LS的DW',
+    title: "LS's DW",
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -124,7 +124,7 @@ function createWindow() {
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
-/* ---------------- 文件树（递归，过滤隐藏文件与常见大目录） ---------------- */
+/* ---------------- File tree (recursive, skips hidden files and common large directories) ---------------- */
 const SKIP_DIRS = new Set(['node_modules', '.git', '.svn', 'dist', '.idea', '.vscode']);
 async function readTree(root) {
   async function walk(dir) {
@@ -140,7 +140,7 @@ async function readTree(root) {
         nodes.push({ name: en.name, path: p, type: 'file', ext: path.extname(en.name).toLowerCase() });
       }
     }
-    nodes.sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name, 'zh') : (a.type === 'dir' ? -1 : 1)));
+    nodes.sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name, 'en') : (a.type === 'dir' ? -1 : 1)));
     return nodes;
   }
   try { return await walk(root); } catch { return []; }
@@ -150,31 +150,31 @@ async function readTree(root) {
 ipcMain.handle('dw:get-startup-args', () => startupArgs);
 
 ipcMain.handle('dialog:open-folder', async () => {
-  const r = await dialog.showOpenDialog(mainWindow, { title: '选择站点文件夹', properties: ['openDirectory'] });
+  const r = await dialog.showOpenDialog(mainWindow, { title: 'Select Site Folder', properties: ['openDirectory'] });
   return r.canceled ? null : r.filePaths[0];
 });
 ipcMain.handle('dialog:open-file', async (e, filters) => {
   const r = await dialog.showOpenDialog(mainWindow, {
-    title: '打开网页',
-    filters: filters || [{ name: '网页', extensions: ['html', 'htm'] }],
+    title: 'Open Page',
+    filters: filters || [{ name: 'Web Page', extensions: ['html', 'htm'] }],
     properties: ['openFile'],
   });
   return r.canceled ? null : r.filePaths[0];
 });
 ipcMain.handle('dialog:save-file', async (e, defName) => {
   const r = await dialog.showSaveDialog(mainWindow, {
-    title: '另存为',
+    title: 'Save As',
     defaultPath: defName,
-    filters: [{ name: '网页', extensions: ['html', 'htm'] }],
+    filters: [{ name: 'Web Page', extensions: ['html', 'htm'] }],
   });
   return r.canceled ? null : r.filePath;
 });
 ipcMain.handle('dialog:pick-file', async (e, kind) => {
   const map = {
-    image: { title: '选择图片', filters: [{ name: '图片', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'] }] },
-    audio: { title: '选择音频', filters: [{ name: '音频', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'mid', 'midi'] }] },
-    video: { title: '选择视频', filters: [{ name: '视频', extensions: ['mp4', 'webm', 'ogg', 'avi', 'mov'] }] },
-    css: { title: '选择样式表', filters: [{ name: '样式表', extensions: ['css'] }] },
+    image: { title: 'Choose Image', filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'] }] },
+    audio: { title: 'Choose Audio', filters: [{ name: 'Audio', extensions: ['mp3', 'wav', 'ogg', 'm4a', 'mid', 'midi'] }] },
+    video: { title: 'Choose Video', filters: [{ name: 'Video', extensions: ['mp4', 'webm', 'ogg', 'avi', 'mov'] }] },
+    css: { title: 'Choose Stylesheet', filters: [{ name: 'Stylesheets', extensions: ['css'] }] },
   };
   const cfg = map[kind] || map.image;
   const r = await dialog.showOpenDialog(mainWindow, { title: cfg.title, filters: cfg.filters, properties: ['openFile'] });

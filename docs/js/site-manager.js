@@ -1,4 +1,4 @@
-// site-manager.js — 站点管理：文件夹树、打开/保存/另存/新建页面、图片复制与相对路径
+// site-manager.js - Site management: folder tree, open/save/save-as/new page, image copying and relative paths
 const Site = (() => {
   let tree = null;
 
@@ -9,7 +9,7 @@ const Site = (() => {
     return np === nr || np.startsWith(nr + '\\');
   }
 
-  /* ---------------- 站点 ---------------- */
+  /* ---------------- Site ---------------- */
   async function openFolderDialog() {
     const p = await api.openFolder();
     if (p) await openFolder(p);
@@ -42,17 +42,17 @@ const Site = (() => {
     return null;
   }
 
-  /* ---------------- 文件树 ---------------- */
+  /* ---------------- File tree ---------------- */
   function renderTree() {
     const box = document.getElementById('file-tree');
     if (!box) return;
     box.innerHTML = '';
     if (!State.siteRoot) {
-      box.appendChild(H('div', 'hint', '尚未打开站点文件夹。\n点工具栏“打开站点”。'));
+      box.appendChild(H('div', 'hint', 'No site folder is open.\nClick "Open Site" in the toolbar.'));
       return;
     }
     if (!tree || !tree.length) {
-      box.appendChild(H('div', 'hint', '站点文件夹是空的，点“新建页面”开始。'));
+      box.appendChild(H('div', 'hint', 'The site folder is empty. Click "New Page" to start.'));
       return;
     }
     box.appendChild(treeNodes(tree, 0));
@@ -81,15 +81,15 @@ const Site = (() => {
 
   function fileMenu(node, x, y) {
     const items = [
-      { label: '打开', run: () => openFile(node.path) },
-      { label: '重命名…', run: () => renameFile(node) },
-      { label: '删除', run: () => deleteFile(node) },
-      { label: '在资源管理器中显示', run: () => api.shellShowItem(node.path) },
+      { label: 'Open', run: () => openFile(node.path) },
+      { label: 'Rename...', run: () => renameFile(node) },
+      { label: 'Delete', run: () => deleteFile(node) },
+      { label: 'Show in File Explorer', run: () => api.shellShowItem(node.path) },
     ];
     ContextMenu.show(items, x, y);
   }
 
-  /* ---------------- 打开 / 保存 ---------------- */
+  /* ---------------- Open / save ---------------- */
   async function openFileDialog() {
     const p = await api.openFile();
     if (p) await openFile(p);
@@ -98,7 +98,7 @@ const Site = (() => {
   async function openFile(p) {
     const ext = (await api.pathExtname(p)).toLowerCase();
     if (ext === '.css') {
-      // css 文件 → 在 CSS 面板中编辑
+      // CSS file -> edit in the CSS panel
       const content = await api.read(p);
       CssPanel.setExternal(p, content);
       document.querySelector('[data-tab="css"]') &&
@@ -119,7 +119,7 @@ const Site = (() => {
     if (!Editor.doc) return;
     if (!State.docPath) return saveAs();
     await saveToPath(State.docPath);
-    App.toast('已保存');
+    App.toast('Saved');
   }
 
   async function saveAs() {
@@ -132,10 +132,10 @@ const Site = (() => {
     if (State.siteRoot && isUnder(p, State.siteRoot)) await refresh();
     State.emit('file-changed');
     renderTree();
-    App.toast('已保存到 ' + p);
+    App.toast('Saved to ' + p);
   }
 
-  // 直接写入指定路径（另存/保存/测试共用）
+  // Write directly to the given path (shared by save-as/save/tests)
   async function saveToPath(p) {
     const html = Serialize.doc();
     await api.write(p, html);
@@ -145,14 +145,14 @@ const Site = (() => {
 
   async function newPage() {
     if (!State.siteRoot) {
-      App.toast('请先打开站点文件夹');
+      App.toast('Open a site folder first');
       return;
     }
-    const name = await Dialog.prompt('新建页面', '文件名（不含扩展名）', 'page' + (Date.now() % 100));
+    const name = await Dialog.prompt('New Page', 'File name (without extension)', 'page' + (Date.now() % 100));
     if (!name) return;
     const p = await api.pathJoin(State.siteRoot, name.replace(/\.html?$/i, '') + '.html');
     if (await api.exists(p)) {
-      App.toast('文件已存在：' + p);
+      App.toast('File already exists: ' + p);
       return;
     }
     await api.write(p, App.newDocHtml(name));
@@ -161,7 +161,7 @@ const Site = (() => {
   }
 
   async function renameFile(node) {
-    const name = await Dialog.prompt('重命名', '新文件名', node.name);
+    const name = await Dialog.prompt('Rename', 'New file name', node.name);
     if (!name || name === node.name) return;
     const np = await api.pathJoin(await api.pathDirname(node.path), name);
     await api.rename(node.path, np);
@@ -174,18 +174,18 @@ const Site = (() => {
   }
 
   async function deleteFile(node) {
-    if (!await Dialog.confirm(`确定删除文件 ${node.name} 吗？此操作不可恢复。`)) return;
+    if (!await Dialog.confirm(`Delete the file ${node.name}? This cannot be undone.`)) return;
     await api.remove(node.path);
     if (State.docPath === node.path) {
       State.docPath = null;
-      State.docName = '未命名-1';
+      State.docName = 'Untitled-1';
       State.emit('file-changed');
     }
     await refresh();
   }
 
-  /* ---------------- 资源复制与相对路径 ---------------- */
-  // 复制外部文件进站点（subDir 为空 → 站点根目录），返回复制后的绝对路径
+  /* ---------------- Asset copying and relative paths ---------------- */
+  // Copy an external file into the site (empty subDir -> site root); returns the absolute path after copying
   async function copyInto(subDir, absPath) {
     if (!State.siteRoot || isUnder(absPath, State.siteRoot)) return absPath;
     const dir = subDir ? await ensureDir(await api.pathJoin(State.siteRoot, subDir)) : State.siteRoot;
@@ -206,7 +206,7 @@ const Site = (() => {
     return p;
   }
 
-  // 当前文档到目标文件的相对路径（HTML 用正斜杠）
+  // Relative path from the current document to the target file (forward slashes in HTML)
   async function docRelative(absPath) {
     let rel;
     if (State.docPath) rel = await api.pathRelative(await api.pathDirname(State.docPath), absPath);

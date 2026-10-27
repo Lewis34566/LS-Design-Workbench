@@ -1,7 +1,7 @@
-// dialogs.js — 轻量模态对话框 / 提示框 / 自定义右键菜单（无框架实现）
+// dialogs.js - Lightweight modal dialogs / alerts / custom context menu (no framework)
 const api = window.dwAPI;
 
-// 通用 DOM 构建小工具（各模块共用）
+// Shared DOM construction helper (used by all modules)
 const H = (tag, cls, text) => {
   const el = document.createElement(tag);
   if (cls) el.className = cls;
@@ -10,8 +10,8 @@ const H = (tag, cls, text) => {
 };
 
 const Dialog = (() => {
-  // show({title, body, width, buttons, onMount}) → {promise, close, box, body}
-  // buttons: [{label, primary, value, onClick(bd, close) → 返回 false 则不关闭}]
+  // show({title, body, width, buttons, onMount}) -> {promise, close, box, body}
+  // buttons: [{label, primary, value, onClick(bd, close) -> return false to keep the dialog open}]
   function show({ title = '', body = '', width = 440, buttons, onMount }) {
     let resolveFn = null;
     const promise = new Promise(res => { resolveFn = res; });
@@ -25,7 +25,7 @@ const Dialog = (() => {
     else bd.appendChild(body);
     const btns = H('div', 'dlg-btns');
     const close = v => { overlay.remove(); resolveFn(v); };
-    const list = buttons || [{ label: '确定', primary: true, value: true }, { label: '取消', value: null }];
+    const list = buttons || [{ label: 'OK', primary: true, value: true }, { label: 'Cancel', value: null }];
     for (const b of list) {
       const btn = H('button', b.primary ? 'primary' : '', b.label);
       btn.addEventListener('click', () => {
@@ -83,33 +83,33 @@ const Dialog = (() => {
       sel.appendChild(o);
     }
     sel.value = value;
-    if (sel.selectedIndex === -1) sel.selectedIndex = 0; // 值不匹配时回退到第一项
+    if (sel.selectedIndex === -1) sel.selectedIndex = 0; // Fall back to the first item when the value does not match
     return sel;
   }
 
   function confirm(msg) {
     return show({
-      title: '确认', width: 360, body: H('div', 'dlg-msg', msg),
-      buttons: [{ label: '确定', primary: true, value: true }, { label: '取消', value: false }],
+      title: 'Confirm', width: 360, body: H('div', 'dlg-msg', msg),
+      buttons: [{ label: 'OK', primary: true, value: true }, { label: 'Cancel', value: false }],
     }).promise;
   }
 
-  // 保存确认：返回 'save' | 'discard' | 'cancel'
+  // Save confirmation: returns 'save' | 'discard' | 'cancel'
   function confirmSave() {
     return show({
-      title: '未保存的更改', width: 400, body: H('div', 'dlg-msg', '当前文档有未保存的修改，要先保存吗？'),
+      title: 'Unsaved Changes', width: 400, body: H('div', 'dlg-msg', 'The current document has unsaved changes. Do you want to save them first?'),
       buttons: [
-        { label: '保存', primary: true, value: 'save' },
-        { label: '不保存', value: 'discard' },
-        { label: '取消', value: 'cancel' },
+        { label: 'Save', primary: true, value: 'save' },
+        { label: "Don't Save", value: 'discard' },
+        { label: 'Cancel', value: 'cancel' },
       ],
     }).promise;
   }
 
-  // 单行输入框，返回输入值或 null
+  // Single-line input box; returns the entered value or null
   function prompt(title, labelText, defValue = '', { required = true } = {}) {
     const dlg = show({
-      title, width: 380, buttons: [{ label: '确定', primary: true, value: true }, { label: '取消', value: null }],
+      title, width: 380, buttons: [{ label: 'OK', primary: true, value: true }, { label: 'Cancel', value: null }],
       onMount: (bd, ctrl) => {
         const inp = H('input');
         inp.value = defValue;
@@ -135,7 +135,7 @@ const Dialog = (() => {
   return { show, field, numInput, check, select, confirm, confirmSave, prompt };
 })();
 
-// 自定义右键菜单（支持悬停子菜单）
+// Custom context menu (supports hover submenus)
 const ContextMenu = (() => {
   let el = null;
   let hideHandler = null;
@@ -171,7 +171,7 @@ const ContextMenu = (() => {
       li.appendChild(H('span', 'ctx-label', it.label));
       if (it.sub) {
         li.classList.add('has-sub');
-        li.appendChild(H('span', 'ctx-arrow', '▶'));
+        li.appendChild(H('span', 'ctx-arrow', '>'));
         li.appendChild(buildList(it.sub));
       } else if (!it.disabled) {
         li.addEventListener('mousedown', e => {

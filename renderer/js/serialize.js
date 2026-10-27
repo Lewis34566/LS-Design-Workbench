@@ -1,4 +1,4 @@
-// serialize.js — 干净序列化：导出不含任何编辑器注入痕迹的 HTML
+// serialize.js - Clean serialization: exports HTML with no editor-injected traces
 const Serialize = (() => {
   function cleanClone(doc) {
     const clone = doc.documentElement.cloneNode(true);
@@ -7,13 +7,13 @@ const Serialize = (() => {
     clone.querySelectorAll('[contenteditable]').forEach(n => n.removeAttribute('contenteditable'));
     const st = clone.querySelector('#dw-editor-style');
     if (st) st.remove();
-    // 还原被抽离的 <script> 源码
+    // Restore the extracted <script> source
     clone.querySelectorAll('[data-dw-sid]').forEach(n => {
       const i = Number(n.getAttribute('data-dw-sid'));
       n.removeAttribute('data-dw-sid');
       n.textContent = Editor.scripts[i] || '';
     });
-    // 剥掉浏览器自动补的 <tbody>（Dreamweaver / 考试答案中不写 tbody）
+    // Strip the <tbody> that browsers add automatically (Dreamweaver / exam answers do not write tbody)
     clone.querySelectorAll('tbody').forEach(tb => {
       const parent = tb.parentNode;
       while (tb.firstChild) parent.insertBefore(tb.firstChild, tb);

@@ -1,4 +1,4 @@
-// dom-ops.js — 设计视图 DOM 操作：插入元素、文本格式、表格行列（colspan/rowspan 网格算法）、链接
+// dom-ops.js - Design view DOM operations: inserting elements, text formatting, table rows/columns (colspan/rowspan grid algorithm), links
 const DomOps = (() => {
   const D = () => Editor.doc;
 
@@ -19,8 +19,8 @@ const DomOps = (() => {
     return true;
   };
 
-  /* ================= 放置与插入 ================= */
-  // 放置元素：块级进最近的块容器；行内进文本容器/元素后
+  /* ================= Placement and insertion ================= */
+  // Place an element: block-level elements go into the nearest block container; inline elements go into/after a text container
   function place(el, { block = false } = {}) {
     const sel = Editor.getSelectedEl();
     if (block) {
@@ -68,7 +68,7 @@ const DomOps = (() => {
     return node;
   }
   const insertBr = () => insertInlineNode(D().createElement('br'));
-  const insertNbsp = () => insertInlineNode(D().createTextNode(' '));
+  const insertNbsp = () => insertInlineNode(D().createTextNode(String.fromCharCode(160)));
   const insertChar = ch => insertInlineNode(D().createTextNode(ch));
   const insertDateText = str => insertInlineNode(D().createTextNode(str));
 
@@ -82,7 +82,7 @@ const DomOps = (() => {
     return n;
   }
   const insertHr = () => insertBlock('hr');
-  const insertMarquee = () => insertBlock('marquee', { text: '滚动文字' });
+  const insertMarquee = () => insertBlock('marquee', { text: 'Scrolling text' });
 
   function insertTable({ rows = 3, cols = 3, width = '', border = '1', cellpadding = '2', cellspacing = '0' } = {}) {
     let h = '<table';
@@ -108,25 +108,25 @@ const DomOps = (() => {
   }
 
   function insertInput(type) {
-    const defs = { submit: '提交', reset: '重置', button: '按钮' };
+    const defs = { submit: 'Submit', reset: 'Reset', button: 'Button' };
     let attrs = `type="${type}" name=""`;
     if (defs[type]) attrs += ` value="${defs[type]}"`;
     if (type === 'text' || type === 'password') attrs += ' size="20"';
     return insertHtml(`<input ${attrs}>`);
   }
   const insertTextarea = () => insertHtml('<textarea name="" rows="4" cols="40"></textarea>');
-  const insertSelect = () => insertHtml('<select name=""><option>选项一</option><option>选项二</option></select>');
+  const insertSelect = () => insertHtml('<select name=""><option>Option 1</option><option>Option 2</option></select>');
 
   function insertVideo({ src = '', width = '320', height = '240', controls = true, autoplay = false, loop = false } = {}) {
     return insertHtml(
       `<video src="${esc(src)}" width="${esc(width)}" height="${esc(height)}"` +
-      `${controls ? ' controls' : ''}${autoplay ? ' autoplay' : ''}${loop ? ' loop' : ''}>您的浏览器不支持 video 标签</video>`,
+      `${controls ? ' controls' : ''}${autoplay ? ' autoplay' : ''}${loop ? ' loop' : ''}>Your browser does not support the video tag</video>`,
       { block: true }
     );
   }
   function insertAudio({ src = '', controls = true, autoplay = false, loop = false } = {}) {
     return insertHtml(
-      `<audio src="${esc(src)}"${controls ? ' controls' : ''}${autoplay ? ' autoplay' : ''}${loop ? ' loop' : ''}>您的浏览器不支持 audio 标签</audio>`
+      `<audio src="${esc(src)}"${controls ? ' controls' : ''}${autoplay ? ' autoplay' : ''}${loop ? ' loop' : ''}>Your browser does not support the audio tag</audio>`
     );
   }
   function insertBgsound({ src = '', loop = '-1' } = {}) {
@@ -155,7 +155,7 @@ const DomOps = (() => {
     return el;
   }
 
-  /* ================= 链接 ================= */
+  /* ================= Links ================= */
   function setLinkAttrs(a, { href, target = '', title = '' }) {
     if (href != null) a.setAttribute('href', href);
     target ? a.setAttribute('target', target) : a.removeAttribute('target');
@@ -174,7 +174,7 @@ const DomOps = (() => {
     setLinkAttrs(a, opts);
     const isEmpty = !el.textContent.trim() && !el.querySelector('img,br,input,select,textarea');
     if (isEmpty) {
-      a.textContent = opts.text || '链接文字';
+      a.textContent = opts.text || 'link text';
       el.appendChild(a);
     } else {
       while (el.firstChild) a.appendChild(el.firstChild);
@@ -195,7 +195,7 @@ const DomOps = (() => {
     return a;
   }
 
-  /* ================= 文本格式 ================= */
+  /* ================= Text formatting ================= */
   function fontTagOf(el) {
     if (el.tagName === 'FONT') return el;
     return [...el.children].find(c => c.tagName === 'FONT') || null;
@@ -207,7 +207,7 @@ const DomOps = (() => {
     if (!f.hasChildNodes()) f.innerHTML = '&nbsp;';
     return f;
   }
-  // 应用字体：行内内容包 <font face size color>（一级考试标准写法）；块级内容退回 CSS
+  // Apply a font: inline content is wrapped in <font face size color> (the standard exam style); block-level content falls back to CSS
   function applyFont(el, { face = '', size = '', color = '' }) {
     if (!el || el === D().body) return el;
     if (el.tagName === 'FONT') return setFontAttrs(el, { face, size, color });
@@ -236,7 +236,7 @@ const DomOps = (() => {
     return parent;
   }
 
-  // 切换 粗体(B)/斜体(I)/下划线(U)：再点一次取消
+  // Toggle bold (B)/italic (I)/underline (U): clicking again removes it
   function toggleWrap(tag, el) {
     if (!el || el === D().body) return el;
     if (el.tagName === tag) return unwrapEl(el);
@@ -264,7 +264,7 @@ const DomOps = (() => {
     return el;
   }
 
-  // 修改块级标签（p↔h1..h6 / ul↔ol）；tag 为空 → 解除格式
+  // Change the block-level tag (p<->h1..h6 / ul<->ol); empty tag -> remove formatting
   function changeBlockTag(el, tag) {
     if (!el) return null;
     if (!tag) return unwrapEl(el);
@@ -276,7 +276,7 @@ const DomOps = (() => {
     return n;
   }
 
-  /* ================= 删除 / 移动 ================= */
+  /* ================= Delete / move ================= */
   function ensureClickable(el) {
     if (el && isTextContainer(el) && !el.hasChildNodes()) el.innerHTML = '&nbsp;';
     return el;
@@ -310,8 +310,8 @@ const DomOps = (() => {
     return el;
   }
 
-  /* ================= 表格网格算法 ================= */
-  // 把表格展开成二维网格，正确处理 colspan / rowspan
+  /* ================= Table grid algorithm ================= */
+  // Expand the table into a 2D grid, handling colspan / rowspan correctly
   function buildGrid(table) {
     const rows = Array.from(table.rows);
     const cols = rows.reduce((m, tr) => Math.max(m, Array.from(tr.cells).reduce((s, td) => s + Math.max(1, td.colSpan), 0)), 0);
@@ -333,7 +333,7 @@ const DomOps = (() => {
     return { grid, origins, rows, cols };
   }
 
-  // 在 refTr 上方/下方插入一行（跨行单元格自动 rowspan+1）
+  // Insert a row above/below refTr (cells spanning rows get rowspan+1 automatically)
   function insertRow(table, refTr, above) {
     const { grid, origins, rows, cols } = buildGrid(table);
     const refIdx = rows.indexOf(refTr);
@@ -359,7 +359,7 @@ const DomOps = (() => {
     return newTr;
   }
 
-  // 在 refCell 左侧/右侧插入一列（跨列单元格自动 colspan+1）
+  // Insert a column left/right of refCell (cells spanning columns get colspan+1 automatically)
   function insertCol(table, refCell, left) {
     const { grid, origins, rows } = buildGrid(table);
     const ref = origins.get(refCell);
@@ -443,7 +443,7 @@ const DomOps = (() => {
     return table;
   }
 
-  // 合并所选单元格（必须是完整矩形区域）
+  // Merge the selected cells (must form a complete rectangular region)
   function mergeCells(table, els) {
     const { grid, origins } = buildGrid(table);
     const infos = els.map(el => origins.get(el)).filter(Boolean);
@@ -470,7 +470,7 @@ const DomOps = (() => {
     return target.el;
   }
 
-  // 拆分单元格为 nRows × nCols（要求不超过原跨度）
+  // Split a cell into nRows x nCols (must not exceed the original spans)
   function splitCell(td, nRows, nCols) {
     const table = td.closest('table');
     const { grid, origins } = buildGrid(table);

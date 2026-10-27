@@ -1,22 +1,22 @@
 /* ============================================================
-   mobile.css — 手机 / 窄屏适配层
-   配合 js/mobile.js 使用：
-     · 窄屏时三栏改为纵向堆叠，可滚动
-     · 每个面板右上角有「—」最小化按钮
-     · 底部控制条：面板开关 / 整体缩放 / 收起展开全部
-   桌面宽屏下本文件几乎不产生任何视觉影响。
+   mobile.css - Phone / narrow-screen adaptation layer
+   Used together with js/mobile.js:
+     - On narrow screens the three columns become a vertical stack and can scroll
+     - Each panel has a "-" minimize button in its top-right corner
+     - Bottom control bar: panel toggles / global zoom / collapse-expand all
+   On wide desktop screens this file has almost no visual effect.
    ============================================================ */
 
-/* 手机专用控件默认全部隐藏，只在窄屏显示 */
+/* Phone-only controls are hidden by default and shown only on narrow screens */
 .m-toggle,
 #m-bar,
 #m-menu { display: none; }
 #design-pane > .m-head { display: none; }
 
-/* ---------------- 窄屏（手机 / 竖屏平板） ---------------- */
+/* ---------------- Narrow screens (phones / portrait tablets) ---------------- */
 @media (max-width: 900px) {
 
-  /* ---------- 工具栏：横向滚动，不再换行挤成两行 ---------- */
+  /* ---------- Toolbar: scrolls horizontally instead of wrapping into two cramped rows ---------- */
   #toolbar {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -36,13 +36,13 @@
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 
-  /* ---------- 顶部提示条收紧 ---------- */
+  /* ---------- Tighter top notice bar ---------- */
   #webnotice { font-size: 11px; padding: 5px 8px; gap: 6px; }
 
-  /* ---------- 状态栏隐藏（信息合并到底部控制条） ---------- */
+  /* ---------- Hide the status bar (its info moves to the bottom control bar) ---------- */
   #statusbar { display: none; }
 
-  /* ---------- 主体：三栏 → 纵向堆叠，整页可上下滚 ---------- */
+  /* ---------- Main area: three columns -> vertical stack; the whole page scrolls vertically ---------- */
   #main {
     display: flex;
     flex-direction: column;
@@ -59,26 +59,26 @@
   #center { flex: 0 0 auto; min-height: 0; }
   #stage { flex-direction: column; }
 
-  /* 各面板给一个舒适的初始高度，内部自行滚动 */
-  /* design-pane 原为 row 方向：注入标题条后会和 iframe 横排，必须改竖排 */
+  /* Give each panel a comfortable initial height and let it scroll internally */
+  /* design-pane was originally row-oriented: after the header bar is injected it would sit beside the iframe, so it must become a column */
   #design-pane { flex: 0 0 auto; flex-direction: column; height: 56vh; min-height: 220px; }
   #design-frame { width: 100%; }
   #code-pane   { flex: 0 0 auto; height: 42vh; min-height: 170px; border-left: 0; border-top: 1px solid var(--line); }
   #left        { height: 46vh; min-height: 190px; }
   #right       { height: 52vh; min-height: 210px; }
 
-  /* 单栏模式时独占更高空间 */
+  /* Single-column modes take up more vertical space */
   body[data-mode="design"] #design-pane { height: 74vh; }
   body[data-mode="code"]   #code-pane   { height: 74vh; }
 
-  /* 面板内部滚动，避免撑破外层的纵向滚动 */
+  /* Panels scroll internally so they do not break the outer vertical scroll */
   #left .tabpane, #right #props { min-height: 0; }
   #css-editor { height: 200px; }
 
-  /* 标签页加大，手指好点 */
+  /* Larger tabs that are easier to tap */
   #left .tabs button { padding: 10px 0; font-size: 14px; }
 
-  /* ---------- 最小化（m-min）：只留一条标题栏 ---------- */
+  /* ---------- Minimized (m-min): keep only a title bar ---------- */
   #left.m-min, #right.m-min {
     height: auto;
     min-height: 0;
@@ -95,7 +95,7 @@
   #design-pane.m-min > .m-head,
   #code-pane.m-min .code-head { border-bottom: 0; }
 
-  /* ---------- 面板头部的「—」按钮 ---------- */
+  /* ---------- The "-" button in panel headers ---------- */
   .m-toggle {
     display: inline-flex;
     align-items: center;
@@ -114,18 +114,18 @@
   }
   .m-toggle:active { background: var(--acc); color: #fff; }
 
-  /* 左栏：tabs 里塞进按钮 */
+  /* Left column: place the button inside the tabs row */
   #left .tabs { align-items: stretch; }
   #left .tabs .m-toggle { margin: 5px 6px 5px 4px; align-self: center; }
 
-  /* 右栏：标题栏变成 flex 行 */
+  /* Right column: the title bar becomes a flex row */
   .props-title { display: flex; align-items: center; gap: 6px; }
   .props-title .m-sp { flex: 1; }
 
-  /* 代码区标题栏 */
+  /* Code pane title bar */
   .code-head .m-toggle { margin-left: 4px; }
 
-  /* 设计视图自建的标题条 */
+  /* Header bar built by the design view itself */
   #design-pane > .m-head {
     display: flex;
     align-items: center;
@@ -140,10 +140,10 @@
   #design-pane > .m-head .m-title { font-weight: 600; }
   #design-pane > .m-head .m-sp { flex: 1; }
 
-  /* ---------- 触屏下可选中文本（body 全局禁止了 user-select） ---------- */
+  /* ---------- Text selection on touch screens (the global body rule disables user-select) ---------- */
   #code-ta, #css-editor, input, textarea, .dlg-body { user-select: text; -webkit-user-select: text; }
 
-  /* ---------- 右键菜单：手机上无法 hover，子菜单改常显 ---------- */
+  /* ---------- Context menu: hover is unavailable on phones, so submenus are always visible ---------- */
   #ctxmenu { min-width: 200px; max-width: 86vw; max-height: 70vh; overflow: auto; }
   #ctxmenu .ctx-item { padding: 10px 14px; }
   #ctxmenu .ctx-item > .ctx-list {
@@ -161,12 +161,12 @@
   #ctxmenu .ctx-item > .ctx-list .ctx-item { padding: 8px 10px; }
   #ctxmenu .ctx-arrow { transform: rotate(90deg); }
 
-  /* ---------- 对话框适配小屏 ---------- */
+  /* ---------- Dialog adaptation for small screens ---------- */
   .dlg { width: auto !important; max-width: 94vw; max-height: 88vh; }
   .dlg-btns { flex-wrap: wrap; }
   .dlg-btns button { flex: 1 1 auto; min-width: 84px; padding: 8px 10px; min-height: 38px; }
 
-  /* ---------- 底部控制条 ---------- */
+  /* ---------- Bottom control bar ---------- */
   #m-bar {
     display: flex;
     align-items: center;
@@ -195,7 +195,7 @@
   }
   #m-bar .m-sp { flex: 1; }
 
-  /* ---------- 面板开关下拉菜单 ---------- */
+  /* ---------- Panel toggle drop-down menu ---------- */
   #m-menu {
     display: block;
     position: fixed;
@@ -235,11 +235,11 @@
     margin-bottom: 4px;
   }
 
-  /* 缩放后允许页面整体滚动，保证缩小的界面可以全部看到 */
+  /* Allow the whole page to scroll after zooming so the entire scaled UI remains visible */
   html.dw-zoomed, html.dw-zoomed body { overflow: auto; }
 }
 
-/* 超小屏再收一点高度 */
+/* Trim the heights a bit more on very small screens */
 @media (max-width: 430px) {
   #left { height: 48vh; }
   #right { height: 54vh; }

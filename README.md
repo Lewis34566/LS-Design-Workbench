@@ -1,124 +1,125 @@
-# LS的DW —— 类 Dreamweaver 网页可视化编辑器
+# LS's DW - Dreamweaver-style visual web page editor
 
-> **LS-DW = Lewis South · Design Workbench** · [GitHub 仓库](https://github.com/Lewis34566/LS-Design-Workbench)
+> **LS-DW = Lewis South - Design Workbench** * [GitHub repository](https://github.com/Lewis34566/LS-Design-Workbench)
 
-用于练习**上海高校计算机一级 DW（网页制作）操作题**的网页编辑器。
-技术栈：Electron（桌面版）+ 原生 HTML/CSS/JS，无任何框架。
+A web page editor for practicing the **Shanghai college Computer Level 1 DW (Web Page Authoring) operation tasks**.
+Tech stack: Electron (desktop edition) + vanilla HTML/CSS/JS, no framework.
 
-## 🌐 在线使用（无需安装）
+## Online use (no installation required)
 
-**直达网址：<https://lewis34566.github.io/LS-Design-Workbench/>**
+**Direct URL: <https://lewis34566.github.io/LS-Design-Workbench/>**
 
-纯浏览器运行，无需安装 Node.js：打开即用，文件保存在访问者自己的浏览器里，
-可用「导出 HTML」下载带走。支持手机操作（面板最小化 / 整体缩放 / 长按菜单）。
-在线版源码在本仓库 [`docs/`](./docs/) 目录。
+Runs entirely in the browser with no Node.js installation: open it and start working; files are stored in the visitor's own browser
+and can be downloaded with "Export HTML". Phone operation is supported (panel minimization / global zoom / long-press menu).
+The online edition source lives in the [`docs/`](./docs/) directory of this repository.
 
-## 快速开始
+## Quick start
 
 ```bash
-npm install        # 已配置国内镜像（registry.npmmirror.com）
-npm start          # 直接运行
+npm install        # The domestic mirror is already configured (registry.npmmirror.com)
+npm start          # Run directly
 ```
 
-> ⚠️ 如果启动后窗口闪退或控制台报 `ipcMain undefined`，检查系统环境变量里是否残留
-> `ELECTRON_RUN_AS_NODE=1`（本项目的 start 脚本已自动清除该变量；永久解决请到
-> 「系统属性 → 环境变量」中删除它，它会让所有 Electron 应用退化成纯 Node 模式）。
+> Warning: if the window closes immediately after startup or the console reports `ipcMain undefined`, check whether
+> `ELECTRON_RUN_AS_NODE=1` is left in the system environment variables (this project's start script clears it automatically;
+> to fix it permanently, delete it under "System Properties -> Environment Variables", because it degrades every Electron
+> application to plain Node mode).
 
-## 界面布局（与 Dreamweaver 一致）
+## UI layout (consistent with Dreamweaver)
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ 工具栏：新建/打开/站点/保存/另存为/预览 │ 代码·拆分·设计 │ ↻ 撤销重做 │
-├──────────┬──────────────────────────────┬────────────────┤
-│ 左栏      │ 中间编辑区                    │ 右栏：属性面板  │
-│ 插入面板  │  ├ 设计视图（iframe，可点选） │ 随选中元素类型   │
-│ 文件树    │  └ 代码视图（语法高亮+行号）  │ 动态生成对应属性 │
-│ CSS 面板  │                              │                │
-├──────────┴──────────────────────────────┴────────────────┤
-│ 状态栏：元素面包屑导航（可点击） │ 选中尺寸 │ 模式 │ 已修改* │
-└─────────────────────────────────────────────────────────┘
++-----------------------------------------------------------+
+| Toolbar: New/Open/Site/Save/Save As/Preview | Code-Split-Design | Undo/Redo |
++----------+--------------------------------+------------------+
+| Left     | Center editing area            | Right: Properties |
+| Insert   |  + Design view (iframe, clickable) | Generated from the |
+| File tree|  + Code view (syntax highlight + line numbers) | selected element type |
+| CSS panel|                                |                  |
++----------+--------------------------------+------------------+
+| Status bar: element breadcrumb (clickable) | selection size | mode | modified* |
++-----------------------------------------------------------+
 ```
 
-## 核心操作
+## Core operations
 
-| 操作 | 方式 |
+| Operation | How |
 |---|---|
-| 选中元素 | 单击（蓝框高亮；**Ctrl+单击**可多选同一表格内的单元格） |
-| 直接改文字 | **双击**进入编辑；回车换行（列表项中回车＝新建一项）；Esc 结束 |
-| 删除 | Delete 键 / 右键菜单 / 属性面板删除按钮 |
-| 选中 body（页面属性） | 单击页面空白处 |
-| 撤销 / 重做 | Ctrl+Z / Ctrl+Y（代码视图内为代码输入框原生撤销） |
-| 保存 / 另存 / 新建 | Ctrl+S / Ctrl+Shift+S / Ctrl+N |
-| 代码→设计同步 | 在代码视图改完按 **F5** 或切回设计/拆分视图 |
-| 插入命令 | 左栏按钮 或 顶部菜单「插入」（全部考点） |
+| Select an element | Single click (blue highlight; **Ctrl+click** adds cells in the same table to the selection) |
+| Edit text directly | **Double-click** to edit; Enter inserts a line break (Enter in a list item = new item); Esc finishes |
+| Delete | Delete key / context menu / delete button in the properties panel |
+| Select body (page properties) | Click an empty area of the page |
+| Undo / redo | Ctrl+Z / Ctrl+Y (inside the code view, the native textarea undo applies) |
+| Save / Save As / New | Ctrl+S / Ctrl+Shift+S / Ctrl+N |
+| Code -> design sync | After editing in the code view, press **F5** or switch back to Design/Split view |
+| Insert commands | Left panel buttons or the top "Insert" menu (covers all exam topics) |
 
-## 一级考点对照（全部实现）
+## Level 1 exam topics covered (all implemented)
 
-1. **页面属性**：标题、背景色 `bgcolor`、背景图像 `background`、文本颜色 `text`、链接颜色、边距 `leftmargin/topmargin`、整页字体/字号
-2. **文本**：标题 1-6、段落、字体（宋体/黑体/微软雅黑/楷体/Arial → `<font face>`）、字号 1-7（`<font size>`）、颜色、**粗体/斜体/下划线**（`<b>/<i>/<u>`，再点一次取消）、对齐 `align`、换行 `<br>`、空格 `&nbsp;`、特殊字符 ©®™¥、插入日期
-3. **列表**：`<ul>` 项目列表、`<ol>` 编号列表（含起始编号 start）
-4. **图片**：本地选择 → **自动复制到站点 `images/` 文件夹** → 相对路径插入；自动写入宽高；可设置 alt/宽/高/边框/对齐/边距；可替换图片；可设为超链接
-5. **超链接**：文字/图片链接、target（_blank/_self/_parent/_top）、`mailto:` 邮件链接、**命名锚记 + `#锚记` 链接**、空链接 `#`、删除链接
-6. **表格**：对话框指定行列；表格属性（宽/边框/填充/间距/对齐/背景色/背景图）；单元格属性（水平/垂直对齐、宽高、背景色、不换行）；**合并单元格**（Ctrl+多选矩形区域，正确写 `colspan/rowspan`）、**拆分单元格**、上/下插行、左/右插列、删行/删列（基于网格算法，正确处理跨行跨列）
-7. **媒体**：水平线（宽/高/对齐/阴影/颜色）、滚动文字 `marquee`（方向/方式/速度/循环/背景色）、视频/音频（video/audio，Flash 的现代替代）、背景音乐 `bgsound`（写入 head）
-8. **表单**：form（action/method/name/target）、文本框、密码框、文本区域、单选、复选、下拉菜单（列表值编辑器）、提交/重置按钮，各自的 name/value/size/checked 等属性
-9. **CSS**：内部样式表实时编辑；新建**标签/类/ID** 选择器规则（对话框生成）；给元素应用 class（带已有类名联想）；**链接外部 .css 文件**（自动复制到站点）；外部 css 文件可在 CSS 面板中直接编辑保存
-10. **其他**：iframe 框架（源/宽高/滚动/边框）、导航条（超链接列表对话框）、站点文件夹管理（文件树、新建多个 html 页面并切换、重命名/删除）
+1. **Page properties**: title, background color `bgcolor`, background image `background`, text color `text`, link colors, margins `leftmargin/topmargin`, page-wide font/size
+2. **Text**: headings 1-6, paragraphs, fonts (SimSun/SimHei/Microsoft YaHei/KaiTi/Arial -> `<font face>`), sizes 1-7 (`<font size>`), color, **bold/italic/underline** (`<b>/<i>/<u>`, click again to remove), alignment `align`, line break `<br>`, space `&nbsp;`, special characters (copyright/registered/trademark/yen), insert date
+3. **Lists**: `<ul>` bulleted list, `<ol>` numbered list (including the `start` attribute)
+4. **Images**: pick a local file -> **automatically copied into the site `images/` folder** -> inserted with a relative path; width and height written automatically; alt/width/height/border/alignment/margins configurable; replace image; make it a hyperlink
+5. **Hyperlinks**: text/image links, target (_blank/_self/_parent/_top), `mailto:` email links, **named anchors + `#anchor` links**, empty link `#`, remove link
+6. **Tables**: dialog for rows and columns; table attributes (width/border/padding/spacing/alignment/background color/background image); cell attributes (horizontal/vertical alignment, width/height, background color, no-wrap); **merge cells** (Ctrl+multi-select a rectangular region, writes `colspan/rowspan` correctly), **split cells**, insert row above/below, insert column left/right, delete row/column (grid-based algorithm that handles row and column spans correctly)
+7. **Media**: horizontal rule (width/height/alignment/shading/color), scrolling text `marquee` (direction/behavior/speed/loop/background color), video/audio (video/audio, the modern replacement for Flash), background music `bgsound` (written into head)
+8. **Forms**: form (action/method/name/target), text field, password field, text area, radio button, checkbox, drop-down menu (list value editor), submit/reset buttons, with their name/value/size/checked attributes
+9. **CSS**: live editing of the internal stylesheet; create **tag/class/ID** selector rules (generated by a dialog); apply a class to an element (with autocomplete for existing class names); **link an external .css file** (copied into the site automatically); external CSS files can be edited and saved directly in the CSS panel
+10. **Other**: iframe frames (source/width/height/scrolling/border), navigation bar (hyperlink list dialog), site folder management (file tree, create and switch between multiple HTML pages, rename/delete)
 
-## 设计要点
+## Design notes
 
-- **所有属性修改真实写入 DOM**，并即时同步到代码视图（设计→代码实时、代码→设计按 F5/切换视图）
-- **导出绝对干净**：序列化时剔除编辑器注入的一切痕迹（选中高亮属性、`contenteditable`、编辑器样式表），剥掉浏览器自动补的 `<tbody>`；页面里的 `<script>` 在导出时原样保留（设计视图中不执行，避免干扰编辑）
-- 撤销/重做：整页 HTML 快照栈（100 步），连续修改（打字、拖颜色）自动合并为一步
+- **Every property change is really written into the DOM** and synchronized to the code view immediately (design -> code in real time; code -> design on F5 / view switch)
+- **Exports are absolutely clean**: serialization removes every trace injected by the editor (selection highlight attributes, `contenteditable`, the editor stylesheet) and strips the `<tbody>` that browsers add automatically; `<script>` elements in the page are preserved verbatim on export (they are not executed in the design view, so they cannot interfere with editing)
+- Undo/redo: a full-page HTML snapshot stack (100 steps); consecutive changes (typing, dragging a color) are merged automatically into a single step
 
-## 自动化测试
+## Automated tests
 
-每个功能模块都有 Playwright 验证（启动真实 Electron 应用操作）：
+Every feature module has Playwright verification (it launches the real Electron app and operates it):
 
 ```bash
-npm run test:main       # 主链路：选中→字体/字号/颜色/背景、页面属性、图片插入、撤销、干净导出
-npm run test:advanced   # 进阶：表格行列/合并拆分、表单、CSS 规则、链接、代码↔设计同步
-npm test                # 全部
+npm run test:main       # Main paths: selection -> font/size/color/background, page properties, image insertion, undo, clean export
+npm run test:advanced   # Advanced: table rows/columns and merge/split, forms, CSS rules, links, code <-> design sync
+npm test                # Everything
 ```
 
-测试运行后截图存于 `tests/out/`。
+Screenshots from test runs are stored in `tests/out/`.
 
-## 打包发布
+## Packaging and release
 
 ```bash
 npm run dist
 ```
 
-产物在 `dist/`：NSIS 安装包 + 免安装便携版（portable exe）。
-配置见 `package.json` 的 `build` 字段（可改 `productName`、加 `icon`）。
+The output is in `dist/`: an NSIS installer plus a portable executable.
+Configuration lives in the `build` field of `package.json` (you can change `productName` and add an `icon`).
 
-## 目录结构
+## Directory structure
 
 ```
 LS-DW/
-├── main.js               # 主进程：窗口、菜单、IPC（对话框/文件系统/路径）
-├── preload.js            # 渲染进程安全桥（contextBridge）
-├── renderer/
-│   ├── index.html        # 界面骨架
-│   ├── css/app.css       # 深色主题样式
-│   └── js/
-│       ├── app.js        # 总装配：模式切换、双向同步、快捷键、撤销、右键菜单
-│       ├── editor-core.js# 设计视图：选中/高亮/双击编辑/Delete/悬停
-│       ├── dom-ops.js    # DOM 操作：插入、字体包裹、表格网格算法(colspan/rowspan)
-│       ├── properties.js # 属性面板（按元素类型生成）+ CSS 面板
-│       ├── insert-panel.js # 插入面板与各类插入对话框
-│       ├── site-manager.js # 站点文件树、打开/保存、图片复制与相对路径
-│       ├── code-view.js  # 代码视图（语法高亮+行号）
-│       ├── serialize.js  # 干净序列化
-│       ├── dialogs.js    # 模态对话框 / 右键菜单
-│       ├── undo.js       # 快照栈
-│       └── state.js      # 全局状态与事件
-└── tests/                # Playwright 验证脚本 + 截图输出
++-- main.js               # Main process: window, menus, IPC (dialogs/file system/paths)
++-- preload.js            # Renderer security bridge (contextBridge)
++-- renderer/
+|   +-- index.html        # UI skeleton
+|   +-- css/app.css       # Dark theme styles
+|   +-- js/
+|       +-- app.js        # Assembly: mode switching, two-way sync, shortcuts, undo, context menu
+|       +-- editor-core.js# Design view: selection/highlight/double-click editing/Delete/hover
+|       +-- dom-ops.js    # DOM operations: insertion, font wrapping, table grid algorithm (colspan/rowspan)
+|       +-- properties.js # Properties panel (generated per element type) + CSS panel
+|       +-- insert-panel.js # Insert panel and the various insertion dialogs
+|       +-- site-manager.js # Site file tree, open/save, image copying and relative paths
+|       +-- code-view.js  # Code view (syntax highlighting + line numbers)
+|       +-- serialize.js  # Clean serialization
+|       +-- dialogs.js    # Modal dialogs / context menu
+|       +-- undo.js       # Snapshot stack
+|       +-- state.js      # Global state and events
++-- tests/                # Playwright verification scripts + screenshot output
 ```
 
-## 已知限制
+## Known limitations
 
-- `marquee`/`bgsound` 是过时标签，仅为考试练习提供（现代浏览器大多仍兼容显示）
-- Flash 已退出历史舞台，考点中的 Flash 由 `video/audio` 替代
-- 拆分单元格的份数不能超过原单元格的 colspan/rowspan 跨度（对话框会提示上限）
-- 代码视图的撤销使用输入框原生撤销；退出代码视图后整页快照接管
+- `marquee`/`bgsound` are obsolete tags, provided only for exam practice (most modern browsers still display them)
+- Flash has left the stage; the Flash part of the exam topics is covered by `video/audio`
+- The number of parts when splitting a cell cannot exceed the original cell's colspan/rowspan span (the dialog shows the upper limit)
+- Undo in the code view uses the textarea's native undo; after leaving the code view, the full-page snapshot stack takes over

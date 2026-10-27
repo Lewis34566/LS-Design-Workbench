@@ -1,4 +1,4 @@
-// code-view.js — 代码视图：textarea + 语法高亮叠层 + 行号（零依赖轻量实现）
+// code-view.js - Code view: textarea + syntax-highlight overlay + line numbers (lightweight, zero dependencies)
 const CodeView = (() => {
   let ta, pre, gutter, hint, applyBtn;
   let lastSync = null;
@@ -40,7 +40,7 @@ const CodeView = (() => {
   function onInput() {
     render();
     pending = true;
-    hint.textContent = '代码已修改 — 按 F5 / 切到设计视图生效';
+    hint.textContent = 'Code modified - press F5 / switch to the design view to apply';
     applyBtn.classList.remove('hidden');
   }
   function clearPendingUI() {

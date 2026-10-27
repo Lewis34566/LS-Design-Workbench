@@ -1,4 +1,4 @@
-// undo.js — 撤销/重做：整页 HTML 快照栈（上限 100 步）
+// undo.js - Undo/redo: full-page HTML snapshot stack (max 100 steps)
 const Undo = (() => {
   const MAX = 100;
   let stack = [];
@@ -26,7 +26,7 @@ const Undo = (() => {
     idx = stack.length - 1;
   }
 
-  // 连续修改（颜色拖拽、打字）合并成一次提交
+  // Merge consecutive changes (color dragging, typing) into a single commit
   function debounce() {
     pending = true;
     if (timer) clearTimeout(timer);
@@ -37,7 +37,7 @@ const Undo = (() => {
     }, 500);
   }
 
-  // 撤销前先把未落盘的修改提交，保证能退到“上一步”
+  // Commit pending changes before undoing so the previous step is reachable
   function flush() {
     if (!pending) return;
     clearPending();

@@ -1,4 +1,4 @@
-// web-ui.js — 网页版界面增强：导出 HTML、说明入口、提示条
+// web-ui.js - Web edition UI enhancements: export HTML, help entry, notice bar
 (function () {
   'use strict';
 
@@ -7,7 +7,7 @@
     else fn();
   }
 
-  /* ---------------- 导出 HTML ---------------- */
+  /* ---------------- Export HTML ---------------- */
   function buildHtml(inline) {
     const clean = Serialize.doc();
     if (!inline) return clean;
@@ -17,19 +17,19 @@
   }
 
   async function exportHtml() {
-    if (!Editor.doc) { App.toast('还没有可导出的内容'); return; }
+    if (!Editor.doc) { App.toast('There is nothing to export yet'); return; }
     const body = H('div', 'dlg-msg');
-    const p1 = H('p', '', '选择导出方式：');
-    const p2 = H('p', '', '· 为标准代码：图片用相对路径 images/xxx.png 引用，和桌面版保存的文件完全一致，适合交作业。');
-    const p3 = H('p', '', '· 为自包含文件：图片转成内联数据，单个文件发给别人也能看到图，但代码会变长。');
+    const p1 = H('p', '', 'Choose an export mode:');
+    const p2 = H('p', '', '- Standard code: images are referenced by relative paths such as images/xxx.png, exactly like files saved by the desktop edition; best for submitting assignments.');
+    const p3 = H('p', '', '- Self-contained file: images become inline data, so a single file still shows its images when sent to others, but the code becomes longer.');
     body.append(p1, p2, p3);
 
     const mode = await Dialog.show({
-      title: '导出 HTML', width: 430, body,
+      title: 'Export HTML', width: 430, body,
       buttons: [
-        { label: '标准代码', primary: true, value: 'plain' },
-        { label: '自包含文件', value: 'inline' },
-        { label: '取消', value: null },
+        { label: 'Standard code', primary: true, value: 'plain' },
+        { label: 'Self-contained file', value: 'inline' },
+        { label: 'Cancel', value: null },
       ],
     }).promise;
     if (!mode) return;
@@ -38,10 +38,10 @@
     let name = (State.docName || 'index.html').replace(/[\\/:*?"<>|]/g, '_');
     if (!/\.[a-z0-9]+$/i.test(name)) name += '.html';
     window.DWVFS.download(name, html);
-    App.toast('已导出 ' + name);
+    App.toast('Exported ' + name);
   }
 
-  /* ---------------- 说明 / 提示条 ---------------- */
+  /* ---------------- Help / notice bar ---------------- */
   function openHelp() {
     Site.openFile(window.DWVFS.root + '\\about.html');
   }
@@ -70,7 +70,7 @@
     if (help) help.addEventListener('click', openHelp);
     initNotice();
 
-    // 页面被隐藏前保存一次，避免误关浏览器丢内容
+    // Save once before the page is hidden so closing the browser by mistake does not lose content
     window.addEventListener('beforeunload', function () {
       try { Site.saveToPath && State.docPath && State.dirty && Site.saveToPath(State.docPath); } catch (e) {}
     });

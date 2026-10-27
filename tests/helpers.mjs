@@ -1,4 +1,4 @@
-// helpers.mjs — 测试公共设施：临时站点、PNG 生成、启动 Electron
+// helpers.mjs - Shared test utilities: temporary sites, PNG generation, launching Electron
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -10,7 +10,7 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 const require = createRequire(import.meta.url);
 export const electronPath = require('electron');
 
-/* ---------------- PNG 生成（无依赖，纯 zlib） ---------------- */
+/* ---------------- PNG generation (no dependencies, pure zlib) ---------------- */
 const CRC_TABLE = (() => {
   const t = new Int32Array(256);
   for (let n = 0; n < 256; n++) {
@@ -57,27 +57,27 @@ export function makePng(w, h, [r, g, b] = [255, 0, 0]) {
   ]);
 }
 
-/* ---------------- 临时测试站点 ---------------- */
+/* ---------------- Temporary test site ---------------- */
 export function makeFixtureSite() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'lsdw-site-'));
   fs.writeFileSync(path.join(dir, 'index.html'), `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>测试站点</title>
+<title>Test Site</title>
 </head>
 <body>
-<p>欢迎</p>
+<p>Welcome</p>
 </body>
 </html>
 `);
   return dir;
 }
 
-/* ---------------- 启动 ---------------- */
+/* ---------------- Launch ---------------- */
 export async function launchApp(fixture) {
   const { _electron } = await import('playwright-core');
-  // 剥离环境里的 ELECTRON_RUN_AS_NODE（若被全局设置，Electron 会退化成纯 Node 模式）
+  // Strip ELECTRON_RUN_AS_NODE from the environment (if set globally, Electron degrades to plain Node mode)
   const env = { ...process.env };
   delete env.ELECTRON_RUN_AS_NODE;
   const app = await _electron.launch({
@@ -87,23 +87,23 @@ export async function launchApp(fixture) {
     env,
   });
   const page = await app.firstWindow();
-  page.on('pageerror', err => console.log('[页面错误]', err.message));
-  app.on('close', () => console.log('[TEST] app close 事件'));
-  app.process().on('exit', code => console.log('[TEST] 主进程退出 code =', code));
+  page.on('pageerror', err => console.log('[Page error]', err.message));
+  app.on('close', () => console.log('[TEST] app close event'));
+  app.process().on('exit', code => console.log('[TEST] main process exited code =', code));
   await page.waitForSelector('.dw-ready', { timeout: 30000 });
   return { app, page };
 }
 
 export let failures = 0;
 export function check(name, cond, extra = '') {
-  if (cond) console.log('  ✓ ' + name);
+  if (cond) console.log('  OK ' + name);
   else {
     failures++;
-    console.log('  ✗ FAIL: ' + name + (extra ? '\n      ' + String(extra).slice(0, 400) : ''));
+    console.log('  FAIL: ' + name + (extra ? '\n      ' + String(extra).slice(0, 400) : ''));
   }
 }
 
 export function summary(title) {
-  if (failures === 0) console.log(`\n【${title}】全部通过 ✔`);
-  else console.log(`\n【${title}】失败 ${failures} 项 ✘`);
+  if (failures === 0) console.log(`\n[${title}] ALL PASSED`);
+  else console.log(`\n[${title}] ${failures} FAILED`);
 }

@@ -1,11 +1,11 @@
-// state.js — 全局状态与极简发布订阅
+// state.js - Global state and a minimal pub/sub
 const State = (() => {
   const listeners = {};
   const state = {
-    docPath: null,        // 当前文档的绝对路径（未保存为 null）
-    docName: '未命名-1',   // 显示名
-    dirty: false,         // 是否有未保存修改
-    siteRoot: null,       // 已打开的站点文件夹
+    docPath: null,        // Absolute path of the current document (null if unsaved)
+    docName: 'Untitled-1',   // Display name
+    dirty: false,         // Whether there are unsaved changes
+    siteRoot: null,       // Open site folder
     mode: 'split',        // 'design' | 'split' | 'code'
     selection: null,      // { path: number[], extras: number[][] }
     untitledSeq: 0,

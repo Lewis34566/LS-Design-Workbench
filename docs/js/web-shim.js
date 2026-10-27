@@ -1,23 +1,23 @@
 /* ============================================================
- * web-shim.js — 网页版兼容层
- * 桌面版（Electron）靠 preload.js 暴露 window.dwAPI 来读写本机磁盘。
- * 网页版没有本机文件系统，这里用「浏览器内的虚拟站点」实现同一套 dwAPI：
- *   - C:\LS站点     站点的根目录（文本文件存 localStorage，刷新不丢）
- *   - C:\本机导入   “浏览…”选中的本机文件，会自动复制到站点的 images/ 等目录
- *   - C:\临时       浏览器预览用的临时文件
- * 只要 index.html 先加载本文件，上层 12 个模块的代码一行都不用改（除 4 处小补丁）。
+ * web-shim.js - Web edition compatibility layer
+ * The desktop edition (Electron) relies on preload.js exposing window.dwAPI to read and write the local disk.
+ * The web edition has no local file system, so this file implements the same dwAPI with an "in-browser virtual site":
+ *   - C:\LS Site      root of the site (text files are stored in localStorage and survive refreshes)
+ *   - C:\Local Import files picked via "Browse..."; they are copied automatically into the site's images/ etc.
+ *   - C:\Temp         temporary files for browser preview
+ * As long as index.html loads this file first, the 12 upstream modules need no code changes (except 4 small patches).
  * ============================================================ */
 (function () {
   'use strict';
 
-  var ROOT = 'C:\\LS站点';
-  var UPLOAD = 'C:\\本机导入';
-  var TMP = 'C:\\临时';
+  var ROOT = 'C:\\LS Site';
+  var UPLOAD = 'C:\\Local Import';
+  var TMP = 'C:\\Temp';
   var LS_KEY = 'ls-dw-web-vfs-v1';
 
   var TEXT_EXT = ['.html', '.htm', '.css', '.js', '.txt', '.json'];
 
-  /* ---------------- 路径工具（Windows 风格，反斜杠） ---------------- */
+  /* ---------------- Path utilities (Windows style, backslashes) ---------------- */
   function win(p) { return String(p == null ? '' : p).replace(/\//g, '\\'); }
   function key(p) {
     var s = win(p).replace(/\\+/g, '\\').replace(/\\+$/, '');
@@ -66,7 +66,7 @@
     return out || '.';
   }
 
-  /* ---------------- 虚拟文件系统 ---------------- */
+  /* ---------------- Virtual file system ---------------- */
   // files: key -> { path, isDir, text?, dataUrl?, blob?, mime? }
   var files = new Map();
   var blobCache = new Map();   // key -> objectURL
@@ -100,7 +100,7 @@
     persist();
   }
 
-  /* 本机持久化：只存文本（图片体积大，超配额会失败，失败就忽略） */
+  /* Local persistence: store text only (images are large and may exceed the quota; ignore failures) */
   function persist() {
     try {
       var entries = [];
@@ -109,7 +109,7 @@
         else if (e.text != null) entries.push({ p: e.path, t: e.text });
       });
       localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, entries: entries }));
-    } catch (err) { /* 配额不足 / 隐私模式：忽略 */ }
+    } catch (err) { /* Quota exceeded / private mode: ignore */ }
   }
   function restore() {
     try {
@@ -125,7 +125,7 @@
     } catch (err) { return false; }
   }
 
-  /* ---------------- 文件树 ---------------- */
+  /* ---------------- File tree ---------------- */
   function readTree(root) {
     var rk = key(root);
     var rootNode = { name: pathBasename(root) || root, path: win(root), type: 'dir', children: [] };
@@ -152,14 +152,14 @@
     (function sort(nodes) {
       nodes.sort(function (a, b) {
         if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
-        return a.name.localeCompare(b.name, 'zh');
+        return a.name.localeCompare(b.name, 'en');
       });
       nodes.forEach(function (n) { if (n.children) sort(n.children); });
     })(rootNode.children);
     return rootNode.children;
   }
 
-  /* ---------------- 资源 URL：虚拟路径 ↔ 可用 URL ---------------- */
+  /* ---------------- Asset URLs: virtual path <-> usable URL ---------------- */
   function urlFor(p) {
     var e = entry(p);
     if (!e || e.isDir) return null;
@@ -199,8 +199,8 @@
 
   var INLINE_ATTRS = ['src', 'background', 'poster'];
 
-  /* 渲染前：把相对路径的媒体资源换成浏览器能直接显示的 URL
-     （只改这一次渲染用的副本；导出时 restoreAssets 会全部还原） */
+  /* Before rendering: replace relative media asset paths with URLs the browser can display directly
+     (this only changes the copy used for this render; restoreAssets restores everything on export) */
   function inlineAssets(doc) {
     var nodes = doc.querySelectorAll('[src],[background],[poster]');
     Array.prototype.forEach.call(nodes, function (el) {
@@ -213,7 +213,7 @@
         if (u) el.setAttribute(a, u);
       });
     });
-    // 外链样式表：站点内的 .css 在设计视图里内联成 <style>，否则相对路径取不到文件、样式不生效
+    // External stylesheets: .css files inside the site are inlined as <style> in the design view; otherwise the relative path cannot resolve and the styles do not apply
     Array.prototype.forEach.call(doc.querySelectorAll('link[rel~="stylesheet"][href]'), function (link) {
       var abs = resolveRef(link.getAttribute('href'));
       if (!abs) return;
@@ -226,7 +226,7 @@
     });
   }
 
-  /* 导出前：把 URL / 内联样式还原成原始写法，保证导出代码和桌面版完全一致 */
+  /* Before export: restore URLs / inlined styles to their original form so the exported code matches the desktop edition exactly */
   function restoreAssets(clone) {
     var nodes = clone.querySelectorAll('[src],[background],[poster]');
     Array.prototype.forEach.call(nodes, function (el) {
@@ -247,14 +247,14 @@
     });
   }
 
-  /* 属性面板显示：把内联 URL 还原成用户看得懂的相对路径 */
+  /* Properties panel display: turn an inline URL back into the relative path the user understands */
   function display(v) {
     if (!v) return v || '';
     var abs = pathForUrl(v);
     return abs ? relFor(abs) : v;
   }
 
-  /* ---------------- 浏览器文件选择 ---------------- */
+  /* ---------------- Browser file picker ---------------- */
   function pickBrowserFile(accept) {
     return new Promise(function (resolve) {
       var inp = document.createElement('input');
@@ -272,7 +272,7 @@
       inp.addEventListener('change', function () {
         finish(inp.files && inp.files[0] ? inp.files[0] : null);
       });
-      // 用户直接关掉系统选择框时 change 不触发，靠窗口重新获得焦点兜底
+      // When the user closes the system picker directly, change never fires; fall back to window focus
       window.addEventListener('focus', function () { setTimeout(function () { finish(null); }, 1200); }, { once: true });
       inp.click();
     });
@@ -294,7 +294,7 @@
       r.readAsDataURL(file);
     });
   }
-  /* 自动识别 UTF-8 / GBK：考试素材常见 GBK 编码，直接按 UTF-8 读会乱码 */
+  /* Detect UTF-8 / GBK automatically: exam materials are often GBK encoded, and reading them as UTF-8 produces garbled text */
   function decodeSmart(buf) {
     var bytes = new Uint8Array(buf);
     if (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) {
@@ -323,7 +323,7 @@
     console.log('[DW]', msg);
   }
 
-  /* ---------------- 导入 / 导出 ---------------- */
+  /* ---------------- Import / export ---------------- */
   async function importFileInto(dirPath, file) {
     var name = uniqName(pathJoin(dirPath, file.name));
     if (isTextName(file.name)) {
@@ -347,26 +347,26 @@
     setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1000);
   }
 
-  /* ---------------- dwAPI 实现 ---------------- */
+  /* ---------------- dwAPI implementation ---------------- */
   var api = {
     getStartupArgs: async function () {
       return { site: ROOT, file: pathJoin(ROOT, 'index.html') };
     },
     openFolder: async function () {
-      toast('网页版使用内置的虚拟站点文件夹，文件保存在你本机浏览器里');
+      toast('The web edition uses a built-in virtual site folder; files are stored in your local browser');
       return ROOT;
     },
     openFile: async function () {
       var f = await pickBrowserFile('.html,.htm,text/html,text/plain');
       if (!f) return null;
       var r = await importFileInto(ROOT, f);
-      toast('已导入网页：' + pathBasename(r.path));
+      toast('Imported page: ' + pathBasename(r.path));
       return r.path;
     },
     saveFile: async function (def) {
-      var d = win(def || pathJoin(ROOT, '未保存.html'));
+      var d = win(def || pathJoin(ROOT, 'Unsaved.html'));
       var cur = pathBasename(d) || 'index.html';
-      var input = await askName('另存为', '文件名（保存在站点的 ' + pathDirname(d) + ' 下）', cur);
+      var input = await askName('Save As', 'File name (saved under ' + pathDirname(d) + ' in the site)', cur);
       if (!input) return null;
       var name = String(input).replace(/[\\/:*?"<>|]/g, '_').trim();
       if (!/\.[a-z0-9]+$/i.test(name)) name += '.html';
@@ -382,14 +382,14 @@
     readTree: async function (root) { return readTree(root); },
     read: async function (p) {
       var e = entry(p);
-      if (!e || e.isDir) throw new Error('无法读取：' + p);
+      if (!e || e.isDir) throw new Error('Cannot read: ' + p);
       return e.text != null ? e.text : (e.dataUrl || '');
     },
     write: async function (p, content) { putText(p, content); return true; },
     mkdir: async function (p) { ensureParents(p); files.set(key(p), { path: win(p), isDir: true }); persist(); return true; },
     copy: async function (src, dest) {
       var e = entry(src);
-      if (!e) throw new Error('找不到文件：' + src);
+      if (!e) throw new Error('File not found: ' + src);
       ensureParents(dest);
       files.set(key(dest), Object.assign({}, e, { path: win(dest), isDir: false }));
       persist();
@@ -424,7 +424,7 @@
 
     shellOpen: async function (p) {
       var e = entry(p);
-      if (!e || e.isDir) { toast('预览失败：文件不存在'); return; }
+      if (!e || e.isDir) { toast('Preview failed: the file does not exist'); return; }
       var html;
       if (e.text != null) {
         var parsed = new DOMParser().parseFromString(e.text, 'text/html');
@@ -433,14 +433,14 @@
       } else if (e.blob) {
         window.open(urlFor(p), '_blank');
         return;
-      } else { toast('该文件无法预览'); return; }
+      } else { toast('This file cannot be previewed'); return; }
       var url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
       window.open(url, '_blank');
       setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
     },
-    shellShowItem: async function () { toast('网页版：文件都在页面内的虚拟站点里'); },
+    shellShowItem: async function () { toast('Web edition: files live in the virtual site inside this page'); },
 
-    onMenu: function () { /* 网页版没有原生菜单，工具栏与插入面板已覆盖全部功能 */ },
+    onMenu: function () { /* The web edition has no native menu; the toolbar and insert panel cover all features */ },
   };
 
   async function askName(title, label, def) {
@@ -453,7 +453,7 @@
     return window.prompt(label, def);
   }
 
-  /* ---------------- 对外暴露 ---------------- */
+  /* ---------------- Exposed API ---------------- */
   window.dwAPI = api;
   window.__dwUrl = urlFor;
   window.DWVFS = {
@@ -469,7 +469,7 @@
     clearAll: function () { files.clear(); blobCache.clear(); try { localStorage.removeItem(LS_KEY); } catch (e) {} },
   };
 
-  /* ---------------- 初始化：恢复上次内容，或写入示例站点 ---------------- */
+  /* ---------------- Initialization: restore the previous content or write the sample site ---------------- */
   if (!restore()) seed();
 
   function seed() {
@@ -478,59 +478,59 @@
       '<html>',
       '<head>',
       '<meta charset="utf-8">',
-      '<title>示例网页</title>',
+      '<title>Sample Page</title>',
       '</head>',
       '<body bgcolor="#ffffff" text="#333333" leftmargin="24" topmargin="24">',
-      '<h1 align="center"><font face="微软雅黑" color="#1e6fd9">网页制作练习示例</font></h1>',
+      '<h1 align="center"><font face="Microsoft YaHei" color="#1e6fd9">Web Authoring Practice Sample</font></h1>',
       '<hr width="80%" size="2" color="#1e6fd9">',
-      '<p><font face="宋体" size="3">这是一个练习用的小站点。用左边的<b>插入面板</b>或顶部工具栏，试着修改它。</font></p>',
-      '<p><font face="楷体" size="4" color="#c25e00">提示：单击选中元素 → 双击直接改文字 → 右侧属性面板改属性。</font></p>',
+      '<p><font face="SimSun" size="3">This is a small practice site. Use the <b>Insert panel</b> on the left or the toolbar at the top to try modifying it.</font></p>',
+      '<p><font face="KaiTi" size="4" color="#c25e00">Tip: click to select an element -&gt; double-click to edit text directly -&gt; use the Properties panel on the right to change attributes.</font></p>',
       '',
-      '<h2>一、常用考点速查</h2>',
+      '<h2>1. Common Exam Topics at a Glance</h2>',
       '<ul>',
-      '<li>文本：标题、段落、<b>粗体</b>、<i>斜体</i>、<u>下划线</u>、字号、颜色</li>',
-      '<li>列表：项目列表 &lt;ul&gt; / 编号列表 &lt;ol&gt;</li>',
-      '<li>表格：插入表格、合并单元格、拆分单元格</li>',
-      '<li>超链接：文字链接、邮件链接、命名锚记</li>',
-      '<li>表单：文本框、单选、复选、下拉菜单、按钮</li>',
+      '<li>Text: headings, paragraphs, <b>bold</b>, <i>italic</i>, <u>underline</u>, font size, color</li>',
+      '<li>Lists: bulleted list &lt;ul&gt; / numbered list &lt;ol&gt;</li>',
+      '<li>Tables: insert table, merge cells, split cells</li>',
+      '<li>Hyperlinks: text links, email links, named anchors</li>',
+      '<li>Forms: text fields, radio buttons, checkboxes, drop-down menus, buttons</li>',
       '</ul>',
       '',
-      '<h2>二、表格练习</h2>',
+      '<h2>2. Table Practice</h2>',
       '<table width="560" border="1" cellpadding="6" cellspacing="0" bordercolor="#9bb4d4">',
       '<tr bgcolor="#e8f0fb">',
-      '<td align="center"><b>考点</b></td>',
-      '<td align="center"><b>标签</b></td>',
-      '<td align="center"><b>重点属性</b></td>',
+      '<td align="center"><b>Topic</b></td>',
+      '<td align="center"><b>Tag</b></td>',
+      '<td align="center"><b>Key attributes</b></td>',
       '</tr>',
       '<tr>',
-      '<td>图片</td>',
+      '<td>Images</td>',
       '<td>&lt;img&gt;</td>',
       '<td>src / alt / width / height</td>',
       '</tr>',
       '<tr>',
-      '<td>框架</td>',
+      '<td>Frames</td>',
       '<td>&lt;iframe&gt;</td>',
       '<td>src / scrolling / frameborder</td>',
       '</tr>',
       '</table>',
       '',
-      '<h2>三、表单练习</h2>',
+      '<h2>3. Form Practice</h2>',
       '<form name="form1" action="mailto:someone@example.com" method="post">',
-      '<p>姓名：<input type="text" name="uname" size="18"></p>',
-      '<p>密码：<input type="password" name="pwd" size="18"></p>',
-      '<p>年级：<input type="radio" name="grade" value="1" checked>大一',
-      '<input type="radio" name="grade" value="2">大二</p>',
-      '<p>兴趣：<input type="checkbox" name="hobby" value="code" checked>编程',
-      '<input type="checkbox" name="hobby" value="art">绘画</p>',
-      '<p>城市：<select name="city">',
-      '<option value="sh" selected>上海</option>',
-      '<option value="bj">北京</option>',
+      '<p>Name: <input type="text" name="uname" size="18"></p>',
+      '<p>Password: <input type="password" name="pwd" size="18"></p>',
+      '<p>Year: <input type="radio" name="grade" value="1" checked>Freshman',
+      '<input type="radio" name="grade" value="2">Sophomore</p>',
+      '<p>Interests: <input type="checkbox" name="hobby" value="code" checked>Coding',
+      '<input type="checkbox" name="hobby" value="art">Drawing</p>',
+      '<p>City: <select name="city">',
+      '<option value="sh" selected>Shanghai</option>',
+      '<option value="bj">Beijing</option>',
       '</select></p>',
-      '<p><input type="submit" value="提交">&nbsp;&nbsp;<input type="reset" value="重置"></p>',
+      '<p><input type="submit" value="Submit">&nbsp;&nbsp;<input type="reset" value="Reset"></p>',
       '</form>',
       '',
       '<hr>',
-      '<p align="center"><font size="2" color="#888888">LS的DW · 网页版　|　类 Dreamweaver 可视化编辑器</font></p>',
+      '<p align="center"><font size="2" color="#888888">LS\'s DW - Web Edition | Dreamweaver-style visual editor</font></p>',
       '</body>',
       '</html>',
     ].join('\n');
@@ -540,37 +540,37 @@
       '<html>',
       '<head>',
       '<meta charset="utf-8">',
-      '<title>关于本工具</title>',
+      '<title>About This Tool</title>',
       '<link rel="stylesheet" href="css/style.css">',
       '</head>',
       '<body>',
-      '<h1>关于 LS的DW</h1>',
-      '<p>类 Dreamweaver 的网页可视化编辑器，用于练习<b>上海高校计算机一级「网页制作」</b>操作题。</p>',
-      '<h2>双视图编辑</h2>',
-      '<p>设计视图所见即所得，代码视图带语法高亮与行号，两者实时同步（代码改完按 F5 应用）。</p>',
-      '<h2>覆盖的一级考点</h2>',
+      '<h1>About LS\'s DW</h1>',
+      '<p>A Dreamweaver-style visual web editor for practicing the <b>Shanghai College Computer Level 1 "Web Page Authoring"</b> operation tasks.</p>',
+      '<h2>Dual-view Editing</h2>',
+      '<p>The design view is WYSIWYG, the code view has syntax highlighting and line numbers, and both stay in sync (press F5 after editing the code to apply it).</p>',
+      '<h2>Covered Level 1 Topics</h2>',
       '<ol start="1">',
-      '<li>页面属性（标题 / 背景 / 边距 / 字体）</li>',
-      '<li>文本格式化</li>',
-      '<li>列表</li>',
-      '<li>图片</li>',
-      '<li>超链接与锚记</li>',
-      '<li>表格与单元格合并拆分</li>',
-      '<li>媒体（水平线 / 滚动文字 / 视频音频 / 背景音乐）</li>',
-      '<li>表单控件</li>',
-      '<li>CSS 样式表</li>',
-      '<li>iframe 框架 / 导航条 / 站点文件管理</li>',
+      '<li>Page properties (title / background / margins / font)</li>',
+      '<li>Text formatting</li>',
+      '<li>Lists</li>',
+      '<li>Images</li>',
+      '<li>Hyperlinks and anchors</li>',
+      '<li>Tables and merging/splitting cells</li>',
+      '<li>Media (horizontal rule / scrolling text / video and audio / background music)</li>',
+      '<li>Form controls</li>',
+      '<li>CSS stylesheets</li>',
+      '<li>iframe frames / navigation bar / site file management</li>',
       '</ol>',
-      '<p><a href="index.html">← 返回示例首页</a></p>',
+      '<p><a href="index.html">&larr; Back to the sample home page</a></p>',
       '</body>',
       '</html>',
     ].join('\n');
 
     var css = [
-      '/* 外部样式表：在左栏 CSS 面板中可以打开并保存 */',
+      '/* External stylesheet: open and save it from the CSS panel on the left */',
       'body {',
       '  background-color: #f4f6fb;',
-      '  font-family: "微软雅黑", Arial, sans-serif;',
+      '  font-family: "Microsoft YaHei", Arial, sans-serif;',
       '  line-height: 1.7;',
       '  margin: 24px;',
       '}',

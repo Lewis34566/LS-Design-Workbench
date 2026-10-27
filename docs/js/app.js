@@ -1,8 +1,8 @@
-// app.js — 总装配：启动、视图模式、设计↔代码双向同步、快捷键、撤销/重做、右键菜单、状态栏
+// app.js - Assembly: startup, view modes, design <-> code sync, shortcuts, undo/redo, context menu, status bar
 const App = (() => {
   let toastTimer = null;
 
-  function newDocHtml(title = '无标题文档') {
+  function newDocHtml(title = 'Untitled Document') {
     return `<!DOCTYPE html>
 <html>
 <head>
@@ -15,11 +15,11 @@ const App = (() => {
 </html>`;
   }
 
-  /* ---------------- 文档加载 / 保存 ---------------- */
+  /* ---------------- Document load / save ---------------- */
   async function loadDocument(html, path) {
     State.selection = null;
     State.docPath = path || null;
-    State.docName = path ? await api.pathBasename(path) : `未命名-${++State.untitledSeq}`;
+    State.docName = path ? await api.pathBasename(path) : `Untitled-${++State.untitledSeq}`;
     CodeView.setValue(html);
     Editor.render(html);
     Undo.reset(html);
@@ -38,12 +38,12 @@ const App = (() => {
     await loadDocument(newDocHtml(), null);
   }
 
-  // 当前文档的干净序列化（撤销栈、导出共用）
+  // Clean serialization of the current document (shared by the undo stack and export)
   function currentHtml() {
     return Serialize.doc();
   }
 
-  // 每次 DOM 修改后的统一出口：同步代码视图 + 标记脏 + 入撤销栈
+  // Single exit point after every DOM mutation: sync the code view + mark dirty + push to undo stack
   function afterMutation({ commit = false } = {}) {
     if (!Editor.doc) return;
     const html = Serialize.doc();
@@ -54,7 +54,7 @@ const App = (() => {
     updateStatus();
   }
 
-  // 结构操作包装：执行 → 提交快照 → 重新选中
+  // Structural operation wrapper: execute -> commit snapshot -> reselect
   function applyDom(fn) {
     const r = fn();
     afterMutation({ commit: true });
@@ -63,7 +63,7 @@ const App = (() => {
     return r;
   }
 
-  /* ---------------- 撤销 / 重做 ---------------- */
+  /* ---------------- Undo / redo ---------------- */
   function undo() {
     const html = Undo.undo();
     if (html != null) loadSnapshot(html);
@@ -78,7 +78,7 @@ const App = (() => {
     State.setDirty(true);
   }
 
-  /* ---------------- 删除 / 右键菜单 ---------------- */
+  /* ---------------- Delete / context menu ---------------- */
   function deleteSelection() {
     const el = Editor.getSelectedEl();
     if (!el || el === Editor.doc.body) return;
@@ -96,18 +96,18 @@ const App = (() => {
     const el = Editor.getSelectedEl();
     const items = [];
     if (el && el !== doc.body) {
-      items.push({ label: '删除元素', run: () => deleteSelection() });
+      items.push({ label: 'Delete element', run: () => deleteSelection() });
     }
     if (el && el.tagName === 'IMG') {
-      items.push({ label: '替换图片…', run: () => Insert.replaceImage() });
+      items.push({ label: 'Replace image...', run: () => Insert.replaceImage() });
     }
     if (el && DomOps.isTextContainer(el) && !['A', 'IMG', 'BODY'].includes(el.tagName)) {
-      items.push({ label: '设为超链接…', run: () => Insert.linkDialog() });
+      items.push({ label: 'Make hyperlink...', run: () => Insert.linkDialog() });
     }
     if (el && el.tagName === 'A' && el.getAttribute('name') == null) {
       items.push(
-        { label: '编辑链接…', run: () => Insert.linkDialog() },
-        { label: '删除链接（保留内容）', run: () => applyDom(() => DomOps.unwrapLink(el)) },
+        { label: 'Edit link...', run: () => Insert.linkDialog() },
+        { label: 'Remove link (keep content)', run: () => applyDom(() => DomOps.unwrapLink(el)) },
       );
     }
     const table = el && el.closest('table');
@@ -116,29 +116,29 @@ const App = (() => {
       const refRow = cell ? cell.parentElement : (el.tagName === 'TR' ? el : table.rows[0]);
       const refCell = cell || table.rows[0].cells[0];
       items.push({
-        label: '表格', sub: [
-          { label: '上方插入行', run: () => applyDom(() => DomOps.insertRow(table, refRow, true)) },
-          { label: '下方插入行', run: () => applyDom(() => DomOps.insertRow(table, refRow, false)) },
-          { label: '左侧插入列', run: () => applyDom(() => DomOps.insertCol(table, refCell, true)) },
-          { label: '右侧插入列', run: () => applyDom(() => DomOps.insertCol(table, refCell, false)) },
+        label: 'Table', sub: [
+          { label: 'Insert row above', run: () => applyDom(() => DomOps.insertRow(table, refRow, true)) },
+          { label: 'Insert row below', run: () => applyDom(() => DomOps.insertRow(table, refRow, false)) },
+          { label: 'Insert column left', run: () => applyDom(() => DomOps.insertCol(table, refCell, true)) },
+          { label: 'Insert column right', run: () => applyDom(() => DomOps.insertCol(table, refCell, false)) },
           '-',
-          { label: '删除当前行', run: () => applyDom(() => DomOps.deleteRow(table, refRow)) },
-          { label: '删除当前列', run: () => applyDom(() => DomOps.deleteCol(table, refCell)) },
+          { label: 'Delete current row', run: () => applyDom(() => DomOps.deleteRow(table, refRow)) },
+          { label: 'Delete current column', run: () => applyDom(() => DomOps.deleteCol(table, refCell)) },
           '-',
-          { label: `合并单元格（已选 ${Editor.getExtraEls().length + 1} 个）`, disabled: !(cell && Editor.getExtraEls().length), run: () => applyDom(() => DomOps.mergeCells(table, Editor.getSelectedCells()) || table) },
-          { label: '拆分单元格…', disabled: !cell, run: () => Insert.splitCellDialog(cell) },
+          { label: `Merge cells (${Editor.getExtraEls().length + 1} selected)`, disabled: !(cell && Editor.getExtraEls().length), run: () => applyDom(() => DomOps.mergeCells(table, Editor.getSelectedCells()) || table) },
+          { label: 'Split cell...', disabled: !cell, run: () => Insert.splitCellDialog(cell) },
         ],
       });
     }
     if (el && el !== doc.body && el.parentElement) {
       items.push('-');
-      items.push({ label: '上移', run: () => applyDom(() => DomOps.moveEl(el, 'up')) });
-      items.push({ label: '下移', run: () => applyDom(() => DomOps.moveEl(el, 'down')) });
+      items.push({ label: 'Move up', run: () => applyDom(() => DomOps.moveEl(el, 'up')) });
+      items.push({ label: 'Move down', run: () => applyDom(() => DomOps.moveEl(el, 'down')) });
     }
     ContextMenu.show(items, x, y);
   }
 
-  /* ---------------- 视图模式与双向同步 ---------------- */
+  /* ---------------- View modes and two-way sync ---------------- */
   function setMode(m) {
     if (m !== State.mode) {
       if ((m === 'design' || m === 'split') && CodeView.hasPendingChanges()) {
@@ -151,7 +151,7 @@ const App = (() => {
     updateStatus();
   }
 
-  // 代码 → 设计：把代码视图内容渲染进设计视图（脚本抽离不执行）
+  // Code -> design: render the code view content into the design view (scripts are extracted, not executed)
   function applyCodeToDesign() {
     if (!CodeView.hasPendingChanges()) return;
     const html = CodeView.getValue();
@@ -165,12 +165,12 @@ const App = (() => {
     updateStatus();
   }
 
-  /* ---------------- 快捷键 ---------------- */
+  /* ---------------- Shortcuts ---------------- */
   function handleShortcutKey(e) {
     const k = e.key.toLowerCase();
     const ctrl = e.ctrlKey || e.metaKey;
     if (ctrl && k === 'z') {
-      if (CodeView.focused()) return; // 代码视图内用原生撤销
+      if (CodeView.focused()) return; // Native undo inside the code view
       e.preventDefault();
       undo();
     } else if (ctrl && k === 'y') {
@@ -198,27 +198,27 @@ const App = (() => {
     }
   }
 
-  /* ---------------- 预览 ---------------- */
+  /* ---------------- Preview ---------------- */
   async function preview() {
     const html = Serialize.doc();
     if (!State.docPath) {
       const tmp = await api.tempPath();
       await api.write(tmp, html);
       await api.shellOpen(tmp);
-      toast('已在浏览器打开预览（临时文件）');
+      toast('Opened preview in the browser (temporary file)');
       return;
     }
     if (State.dirty) {
       const p = await api.pathJoin(await api.pathDirname(State.docPath), '.dw-preview.html');
       await api.write(p, html);
       await api.shellOpen(p);
-      toast('已在浏览器打开预览');
+      toast('Opened preview in the browser');
     } else {
       await api.shellOpen(State.docPath);
     }
   }
 
-  /* ---------------- 菜单事件 ---------------- */
+  /* ---------------- Menu events ---------------- */
   function bindMenu() {
     api.onMenu(type => {
       if (type.startsWith('insert:')) { Insert.run(type.slice(7)); return; }
@@ -242,9 +242,9 @@ const App = (() => {
     });
   }
 
-  /* ---------------- 状态栏 ---------------- */
+  /* ---------------- Status bar ---------------- */
   function breadcrumbHtml(el) {
-    if (!el || !Editor.doc) return '未选中';
+    if (!el || !Editor.doc) return 'Nothing selected';
     const chain = [];
     let n = el;
     while (n && n !== Editor.doc.documentElement) {
@@ -266,11 +266,11 @@ const App = (() => {
     crumb.querySelectorAll('.crumb').forEach(sp => {
       sp.addEventListener('click', () => Editor.selectPath(sp.dataset.path.split('-').map(Number)));
     });
-    document.getElementById('st-dims').textContent = el && el !== Editor.doc.body ? `${el.offsetWidth}×${el.offsetHeight}` : '';
-    document.getElementById('st-mode').textContent = { design: '设计', split: '拆分', code: '代码' }[State.mode] || '';
+    document.getElementById('st-dims').textContent = el && el !== Editor.doc.body ? `${el.offsetWidth}x${el.offsetHeight}` : '';
+    document.getElementById('st-mode').textContent = { design: 'Design', split: 'Split', code: 'Code' }[State.mode] || '';
     document.getElementById('dirty-dot').classList.toggle('hidden', !State.dirty);
     document.getElementById('doc-name').textContent = State.docName + (State.dirty ? ' *' : '');
-    document.title = `${State.docName}${State.dirty ? ' *' : ''} - LS的DW`;
+    document.title = `${State.docName}${State.dirty ? ' *' : ''} - LS's DW`;
     document.getElementById('btn-undo').disabled = !Undo.canUndo();
     document.getElementById('btn-redo').disabled = !Undo.canRedo();
   }
@@ -283,7 +283,7 @@ const App = (() => {
     toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
   }
 
-  /* ---------------- 工具栏 / 标签页 ---------------- */
+  /* ---------------- Toolbar / tabs ---------------- */
   function bindToolbar() {
     document.getElementById('btn-new').addEventListener('click', newDocument);
     document.getElementById('btn-open').addEventListener('click', () => Site.openFileDialog());
@@ -309,7 +309,7 @@ const App = (() => {
     });
   }
 
-  /* ---------------- 启动 ---------------- */
+  /* ---------------- Startup ---------------- */
   async function boot() {
     Editor.init(document.getElementById('design-frame'));
     CodeView.init();
@@ -346,17 +346,17 @@ const App = (() => {
   };
 })();
 
-// 暴露给自动化测试与调试
+// Exposed for automated tests and debugging
 window.DW = {
   code: CodeView, editor: Editor, domops: DomOps, insert: Insert,
   site: Site, undo: Undo, app: App, state: State, serialize: Serialize,
   props: Properties, css: CssPanel,
 };
 
-// 调试用：谁关闭窗口一目了然
+// Debug helper: makes it obvious who closes the window
 const __origClose = window.close.bind(window);
 window.close = function () {
-  console.error('[window.close 调用]', new Error().stack);
+  console.error('[window.close called]', new Error().stack);
   return __origClose();
 };
 

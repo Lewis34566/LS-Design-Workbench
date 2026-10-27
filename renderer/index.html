@@ -1,79 +1,79 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>LS的DW</title>
+<title>LS's DW</title>
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body data-mode="split">
 <div id="app">
-  <!-- 顶部工具栏 -->
+  <!-- Top toolbar -->
   <header id="toolbar">
-    <div class="brand">LS的DW</div>
-    <button id="btn-new" title="新建页面 (Ctrl+N)">新建</button>
-    <button id="btn-open" title="打开网页 (Ctrl+O)">打开</button>
-    <button id="btn-open-site" title="打开站点文件夹">打开站点</button>
-    <button id="btn-save" title="保存 (Ctrl+S)">保存</button>
-    <button id="btn-saveas" title="另存为 (Ctrl+Shift+S)">另存为</button>
-    <button id="btn-preview" title="在浏览器中预览">浏览器预览</button>
+    <div class="brand">LS's DW</div>
+    <button id="btn-new" title="New Page (Ctrl+N)">New</button>
+    <button id="btn-open" title="Open Page (Ctrl+O)">Open</button>
+    <button id="btn-open-site" title="Open Site Folder">Open Site</button>
+    <button id="btn-save" title="Save (Ctrl+S)">Save</button>
+    <button id="btn-saveas" title="Save As (Ctrl+Shift+S)">Save As</button>
+    <button id="btn-preview" title="Preview in Browser">Browser Preview</button>
     <span class="sep"></span>
     <div class="seg">
-      <button id="btn-mode-code" data-mode="code">代码</button>
-      <button id="btn-mode-split" data-mode="split" class="on">拆分</button>
-      <button id="btn-mode-design" data-mode="design">设计</button>
+      <button id="btn-mode-code" data-mode="code">Code</button>
+      <button id="btn-mode-split" data-mode="split" class="on">Split</button>
+      <button id="btn-mode-design" data-mode="design">Design</button>
     </div>
-    <button id="btn-refresh" title="刷新设计视图 / 应用代码修改 (F5)">↻</button>
+    <button id="btn-refresh" title="Refresh design view / apply code changes (F5)">&#8635;</button>
     <span class="sep"></span>
-    <button id="btn-undo" title="撤销 (Ctrl+Z)">↶</button>
-    <button id="btn-redo" title="重做 (Ctrl+Y)">↷</button>
+    <button id="btn-undo" title="Undo (Ctrl+Z)">&#8630;</button>
+    <button id="btn-redo" title="Redo (Ctrl+Y)">&#8631;</button>
     <span class="sp"></span>
-    <span id="doc-name">未命名-1</span>
-    <span id="dirty-dot" class="hidden" title="有未保存的修改">●</span>
+    <span id="doc-name">Untitled-1</span>
+    <span id="dirty-dot" class="hidden" title="Unsaved changes">&#9679;</span>
   </header>
 
-  <!-- 三栏主体 -->
+  <!-- Three-column main area -->
   <div id="main">
-    <!-- 左栏：插入 / 文件 / CSS -->
+    <!-- Left column: Insert / Files / CSS -->
     <aside id="left">
       <div class="tabs">
-        <button id="tab-btn-insert" data-tab="insert" class="on">插入</button>
-        <button id="tab-btn-files" data-tab="files">文件</button>
+        <button id="tab-btn-insert" data-tab="insert" class="on">Insert</button>
+        <button id="tab-btn-files" data-tab="files">Files</button>
         <button id="tab-btn-css" data-tab="css">CSS</button>
       </div>
       <div id="tab-insert" class="tabpane"></div>
       <div id="tab-files" class="tabpane hidden">
         <div class="row-2">
-          <button id="btn-new-page" class="grow">＋ 新建页面</button>
+          <button id="btn-new-page" class="grow">+ New Page</button>
         </div>
         <div id="file-tree"></div>
       </div>
       <div id="tab-css" class="tabpane hidden">
         <div class="css-head">
-          <span id="css-target-label">内部样式表</span>
-          <button id="btn-css-back" class="hidden" title="返回内部样式表">↩</button>
+          <span id="css-target-label">Internal stylesheet</span>
+          <button id="btn-css-back" class="hidden" title="Back to internal stylesheet">&#8617;</button>
         </div>
         <div class="row-2">
-          <button id="btn-css-new-rule">＋ 新建规则</button>
-          <button id="btn-css-link">链接外部CSS</button>
+          <button id="btn-css-new-rule">+ New Rule</button>
+          <button id="btn-css-link">Link External CSS</button>
         </div>
         <div class="row-2">
-          <button id="btn-css-new-file">＋ 新建CSS文件</button>
-          <button id="btn-css-save" disabled>保存外部CSS</button>
+          <button id="btn-css-new-file">+ New CSS File</button>
+          <button id="btn-css-save" disabled>Save External CSS</button>
         </div>
-        <textarea id="css-editor" spellcheck="false" placeholder="/* 内部样式表（<style> 内容） */"></textarea>
+        <textarea id="css-editor" spellcheck="false" placeholder="/* Internal stylesheet (<style> content) */"></textarea>
       </div>
     </aside>
 
-    <!-- 中间：设计视图 + 代码视图 -->
+    <!-- Center: design view + code view -->
     <div id="center">
       <div id="stage">
-        <div id="design-pane"><iframe id="design-frame" title="设计视图"></iframe></div>
+        <div id="design-pane"><iframe id="design-frame" title="Design view"></iframe></div>
         <div id="code-pane">
           <div class="code-head">
-            <span>源代码</span>
+            <span>Code</span>
             <span id="code-hint" class="hint"></span>
             <span class="sp"></span>
-            <button id="btn-apply-code" class="hidden">应用代码</button>
+            <button id="btn-apply-code" class="hidden">Apply Code</button>
           </div>
           <div id="code-scroll">
             <div class="code-row">
@@ -88,16 +88,16 @@
       </div>
     </div>
 
-    <!-- 右栏：属性面板 -->
+    <!-- Right column: properties panel -->
     <aside id="right">
-      <div class="props-title">属性面板</div>
+      <div class="props-title">Properties</div>
       <div id="props"></div>
     </aside>
   </div>
 
-  <!-- 状态栏 -->
+  <!-- Status bar -->
   <footer id="statusbar">
-    <span id="crumb">未选中</span>
+    <span id="crumb">Nothing selected</span>
     <span class="sp"></span>
     <span id="st-dims"></span>
     <span id="st-mode"></span>

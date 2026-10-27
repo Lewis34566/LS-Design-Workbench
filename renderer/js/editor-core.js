@@ -1,4 +1,4 @@
-// editor-core.js — 设计视图核心：iframe 渲染、点选/高亮、双击编辑、Delete 删除
+// editor-core.js - Design view core: iframe rendering, click selection/highlight, double-click editing, Delete key removal
 const Editor = (() => {
   let iframe = null;
   let doc = null;
@@ -6,22 +6,22 @@ const Editor = (() => {
   let loaded = false;
   let editing = null;       // { el }
   let hoverEl = null;
-  let pendingPath = null;   // 重新渲染后尝试恢复的选中路径
-  const scripts = [];       // 页面 <script> 源码备份（设计视图不执行脚本）
+  let pendingPath = null;   // Selection path to restore after re-rendering
+  const scripts = [];       // Backups of page <script> sources (the design view does not execute scripts)
 
-  // 双击不可编辑的元素
+  // Elements that cannot be edited by double-clicking
   const EDIT_BAN = new Set([
     'TABLE', 'TR', 'IMG', 'HR', 'IFRAME', 'VIDEO', 'AUDIO', 'INPUT', 'SELECT',
     'TEXTAREA', 'BUTTON', 'FORM', 'UL', 'OL', 'BODY', 'HTML', 'HEAD', 'STYLE',
     'SCRIPT', 'TITLE', 'LINK', 'META', 'BGSOUND',
   ]);
 
-  // 编辑器注入的样式（导出时会被完全剔除）
+  // Styles injected by the editor (completely removed on export)
   const INJECTED_CSS = [
     '[data-dw-selected]{outline:2px solid #1e6fd9 !important;outline-offset:-1px}',
     '[data-dw-hover]{outline:1px dashed #7aa5e0 !important;outline-offset:-1px}',
     'html{background:transparent}html,body{min-height:100%}',
-    'a[name]:empty::before{content:"⚓";color:#c25e00;font-size:13px}',
+    'a[name]:empty::before{content:"\\2693";color:#c25e00;font-size:13px}',
     'form{outline:1px dashed #d9534f;outline-offset:2px}',
     'script{display:none!important}',
   ].join('\n');
@@ -31,7 +31,7 @@ const Editor = (() => {
     frame.addEventListener('load', onLoad);
   }
 
-  // 渲染 HTML 源码到设计视图（脚本被抽离成占位，导出时原样放回）
+  // Render HTML source into the design view (scripts are extracted as placeholders and restored on export)
   function render(html) {
     scripts.length = 0;
     const parsed = new DOMParser().parseFromString(html, 'text/html');
@@ -65,7 +65,7 @@ const Editor = (() => {
     State.emit('design-loaded');
   }
 
-  /* ---------------- 事件 ---------------- */
+  /* ---------------- Events ---------------- */
   function wireEvents() {
     doc.addEventListener('click', onCaptureClick, true);
     doc.addEventListener('dblclick', onDblClick, true);
@@ -87,7 +87,7 @@ const Editor = (() => {
   }
 
   function onCaptureClick(e) {
-    e.preventDefault(); // 阻断链接跳转、复选框切换等页面默认行为
+    e.preventDefault(); // Block default page behavior such as link navigation and checkbox toggling
     if (editing) return;
     const el = pick(e.target);
     if (!el) return;
@@ -107,14 +107,14 @@ const Editor = (() => {
     e.preventDefault();
     if (editing) return;
     const el = pick(e.target);
-    if (el && el !== getSelectedEl()) selectEl(el); // 右键同时选中
+    if (el && el !== getSelectedEl()) selectEl(el); // Right-click also selects
     App.showContextMenu(e.clientX, e.clientY);
   }
 
   function onKey(e) {
     if (editing) {
       if (e.key === 'Enter') {
-        // 在列表项里回车 → 新起一个 <li>（Dreamweaver 行为）
+        // Enter inside a list item -> starts a new <li> (Dreamweaver behavior)
         if (editing.el.tagName === 'LI') {
           e.preventDefault();
           const cur = editing.el;
@@ -163,7 +163,7 @@ const Editor = (() => {
   }
 
   function onInput(e) {
-    // 设计视图内直接打字（contenteditable 编辑 / 直接往输入框里敲）都要同步
+    // Typing directly in the design view (contenteditable editing / typing into form fields) must be synchronized
     if (editing || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
       App.afterMutation({ commit: false });
     }
@@ -173,11 +173,11 @@ const Editor = (() => {
     if (editing) endEdit();
   }
 
-  /* ---------------- 双击编辑 ---------------- */
+  /* ---------------- Double-click editing ---------------- */
   function startEdit(el, e, selectAll) {
     selectEl(el);
     el.setAttribute('contenteditable', 'plaintext-only');
-    el.focus(); // 先聚焦再挂 editing，避免 focusout 立即结束编辑
+    el.focus(); // Focus first, then set editing, so focusout does not end editing immediately
     editing = { el };
     try {
       if (!selectAll && e) {
@@ -214,7 +214,7 @@ const Editor = (() => {
     App.afterMutation({ commit: true });
   }
 
-  // 把换行文本节点转成 <br>
+  // Convert newline text nodes into <br>
   function normalizeText(root) {
     const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     const bad = [];
@@ -232,7 +232,7 @@ const Editor = (() => {
     }
   }
 
-  /* ---------------- 选中 / 路径 ---------------- */
+  /* ---------------- Selection / paths ---------------- */
   function selectEl(el) {
     clearMarks();
     State.selection = { path: pathOf(el), extras: [] };
@@ -275,7 +275,7 @@ const Editor = (() => {
     return State.selection.extras.map(resolve).filter(Boolean);
   }
 
-  // 主选 + 附加选中的单元格（同一表格内）
+  // Primary plus additionally selected cells (within the same table)
   function getSelectedCells() {
     const primary = getSelectedEl();
     if (!primary || !['TD', 'TH'].includes(primary.tagName)) return [];
@@ -293,14 +293,14 @@ const Editor = (() => {
     if (el) selectEl(el);
   }
 
-  // 结构变化后：路径失效则退回 body
+  // After a structural change: fall back to body if the path is no longer valid
   function refreshSelectionSafe() {
     const el = getSelectedEl();
     if (el) selectEl(el);
     else selectBody();
   }
 
-  // 从元素到根的子元素下标链（只数元素子节点，文字编辑不影响）
+  // Chain of child indices from the element up to the root (counts element children only; text edits do not affect it)
   function pathOf(el) {
     const path = [];
     let n = el;

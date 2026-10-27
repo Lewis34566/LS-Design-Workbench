@@ -1,4 +1,4 @@
-// preload.js — 渲染进程安全桥（contextIsolation 开启，只暴露白名单 API）
+// preload.js - Renderer security bridge (contextIsolation enabled, exposes only whitelisted APIs)
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('dwAPI', {

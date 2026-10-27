@@ -1,5 +1,5 @@
-// mobile.js — 手机 / 窄屏适配：面板最小化、面板开关菜单、整体缩放、长按弹菜单
-// 纯增量注入，不改动桌面版任何原有逻辑。
+// mobile.js - Phone / narrow-screen adaptation: panel minimization, panel toggle menu, global zoom, long-press context menu
+// Purely additive injection; it does not change any existing desktop logic.
 (function () {
   'use strict';
   if (window.__dwMobileReady) return;
@@ -12,12 +12,12 @@
   var ZOOM_STORE = 'dw-zoom';
   var zoom = 1;
 
-  /* 可独立最小化的四个面板单元 */
+  /* The four panel units that can be minimized independently */
   var UNITS = [
-    { id: 'design-pane', name: '设计视图',          head: null,                      built: false },
-    { id: 'code-pane',   name: '源代码',            head: '#code-pane .code-head',   built: false },
-    { id: 'left',        name: '插入 / 文件 / CSS', head: '#left .tabs',             built: false },
-    { id: 'right',       name: '属性面板',          head: '#right .props-title',     built: false },
+    { id: 'design-pane', name: 'Design view',          head: null,                      built: false },
+    { id: 'code-pane',   name: 'Code',                 head: '#code-pane .code-head',   built: false },
+    { id: 'left',        name: 'Insert / Files / CSS', head: '#left .tabs',             built: false },
+    { id: 'right',       name: 'Properties',           head: '#right .props-title',     built: false },
   ];
 
   var bar, zoomVal, allBtn, menuEl = null;
@@ -38,7 +38,7 @@
   }
 
   /* ==========================================================
-     1. 面板最小化
+     1. Panel minimization
      ========================================================== */
 
   function injectToggles() {
@@ -48,7 +48,7 @@
       var head = u.head ? qs(u.head) : null;
 
       if (!head) {
-        // 设计视图原本没有标题栏，自建一条
+        // The design view originally has no header bar, so build one
         head = make('div', 'm-head');
         head.appendChild(make('span', 'm-title', u.name));
         head.appendChild(make('span', 'm-sp'));
@@ -59,9 +59,9 @@
 
       var btn = make('button', 'm-toggle');
       btn.type = 'button';
-      btn.title = '最小化 / 展开「' + u.name + '」';
-      btn.setAttribute('aria-label', '最小化 ' + u.name);
-      btn.textContent = '—';
+      btn.title = 'Minimize / expand "' + u.name + '"';
+      btn.setAttribute('aria-label', 'Minimize ' + u.name);
+      btn.textContent = '-';
       btn.addEventListener('click', function (ev) {
         ev.preventDefault();
         ev.stopPropagation();
@@ -81,7 +81,7 @@
     var u = unitOf(id);
     var min = (typeof force === 'boolean') ? force : !box.classList.contains('m-min');
     box.classList.toggle('m-min', min);
-    if (u && u.btn) u.btn.textContent = min ? '▸' : '—';
+    if (u && u.btn) u.btn.textContent = min ? '>' : '-';
     syncBar();
   }
 
@@ -97,36 +97,36 @@
   }
 
   /* ==========================================================
-     2. 底部控制条
+     2. Bottom control bar
      ========================================================== */
 
   function buildBar() {
     bar = make('div');
     bar.id = 'm-bar';
 
-    var panelBtn = make('button', '', '▤ 面板');
-    panelBtn.title = '显示或最小化各个面板';
+    var panelBtn = make('button', '', 'Panels');
+    panelBtn.title = 'Show or minimize the panels';
     panelBtn.addEventListener('click', function (ev) {
       ev.stopPropagation();
       if (menuEl) closeMenu(); else openMenu();
     });
 
-    var out = make('button', 'm-zbtn', '−');
-    out.title = '缩小界面';
+    var out = make('button', 'm-zbtn', '-');
+    out.title = 'Zoom out';
     out.addEventListener('click', function () { applyZoom(zoom - ZOOM_STEP); });
 
     zoomVal = make('span');
     zoomVal.id = 'm-zoom-val';
     zoomVal.textContent = '100%';
-    zoomVal.title = '点击恢复 100%';
+    zoomVal.title = 'Click to reset to 100%';
     zoomVal.addEventListener('click', function () { applyZoom(1); });
 
-    var inc = make('button', 'm-zbtn', '＋');
-    inc.title = '放大界面';
+    var inc = make('button', 'm-zbtn', '+');
+    inc.title = 'Zoom in';
     inc.addEventListener('click', function () { applyZoom(zoom + ZOOM_STEP); });
 
-    allBtn = make('button', '', '收起全部');
-    allBtn.title = '把所有面板收成标题条';
+    allBtn = make('button', '', 'Collapse all');
+    allBtn.title = 'Collapse all panels to title bars';
     allBtn.addEventListener('click', function () {
       setAll(!allMinimized());
     });
@@ -138,12 +138,12 @@
 
   function syncBar() {
     if (!allBtn) return;
-    allBtn.textContent = allMinimized() ? '展开全部' : '收起全部';
+    allBtn.textContent = allMinimized() ? 'Expand all' : 'Collapse all';
     if (menuEl) refreshMenu();
   }
 
   /* ==========================================================
-     3. 面板开关菜单
+     3. Panel toggle menu
      ========================================================== */
 
   function buildMenu() {
@@ -155,7 +155,7 @@
 
   function refreshMenu() {
     if (!menuEl) return;
-    var tip = make('div', 'm-tip', '点面板名可最小化 / 展开，并跳到该面板');
+    var tip = make('div', 'm-tip', 'Click a panel name to minimize / expand it and jump to that panel');
     menuEl.innerHTML = '';
     menuEl.appendChild(tip);
 
@@ -165,7 +165,7 @@
       var item = make('div', 'm-item' + (off ? ' off' : ''));
       item.appendChild(make('span', 'm-dot'));
       item.appendChild(make('span', '', u.name));
-      item.appendChild(make('span', 'm-st', off ? '已最小化' : '显示中'));
+      item.appendChild(make('span', 'm-st', off ? 'Minimized' : 'Visible'));
       item.addEventListener('click', function () {
         toggleUnit(u.id);
         closeMenu();
@@ -196,7 +196,7 @@
   }
 
   /* ==========================================================
-     4. 整体缩放
+     4. Global zoom
      ========================================================== */
 
   function applyZoom(z, silent) {
@@ -211,21 +211,21 @@
       document.documentElement.classList.remove('dw-zoomed');
     } else {
       app.style.zoom = zoom;
-      // zoom 会同时缩放元素占位，这里做反向补偿，让画面正好铺满视口
+      // zoom also scales the element boxes; compensate in reverse so the view fills the viewport exactly
       app.style.width = (100 / zoom) + '%';
       app.style.height = (100 / zoom) + '%';
       document.documentElement.classList.add('dw-zoomed');
     }
     if (zoomVal) zoomVal.textContent = Math.round(zoom * 100) + '%';
     if (!silent) {
-      try { localStorage.setItem(ZOOM_STORE, String(zoom)); } catch (e) { /* 忽略 */ }
+      try { localStorage.setItem(ZOOM_STORE, String(zoom)); } catch (e) { /* ignore */ }
     }
-    // 缩放会改变设计视图可用宽度，让内部重排一次
-    try { window.dispatchEvent(new Event('resize')); } catch (e) { /* 忽略 */ }
+    // Zooming changes the usable width of the design view, so let the inner layout reflow once
+    try { window.dispatchEvent(new Event('resize')); } catch (e) { /* ignore */ }
   }
 
   /* ==========================================================
-     5. 触屏长按 = 右键菜单（设计视图内）
+     5. Touch long-press = context menu (inside the design view)
      ========================================================== */
 
   function bindFrameTouch() {
@@ -248,14 +248,14 @@
         fired = true;
         try {
           var el = doc.elementFromPoint(sx, sy);
-          // 注意：主脚本里 App/Editor/State 都是顶层 const，不在 window 上，统一走 window.DW
+          // Note: in the main script App/Editor/State are top-level consts, not properties of window; use window.DW
           var dw = window.DW || {};
           if (el && dw.editor && dw.editor.selectEl) dw.editor.selectEl(el);
           var rect = frame.getBoundingClientRect();
           if (dw.app && dw.app.showContextMenu) {
             dw.app.showContextMenu(rect.left + sx, rect.top + sy);
           }
-        } catch (err) { /* 忽略 */ }
+        } catch (err) { /* ignore */ }
       }, 480);
     }, { passive: true });
 
@@ -271,7 +271,7 @@
     doc.addEventListener('touchend', function (e) {
       if (timer) { clearTimeout(timer); timer = null; return; }
       if (fired) {
-        // 长按已弹出菜单，吞掉这次抬手合成的 click / mousedown，避免误点到菜单项
+        // The long-press already opened the menu; swallow the click / mousedown synthesized on release to avoid hitting a menu item by mistake
         e.preventDefault();
         fired = false;
       } else if (moved) {
@@ -281,16 +281,16 @@
   }
 
   /* ==========================================================
-     6. 启动
+     6. Startup
      ========================================================== */
 
   function boot() {
     injectToggles();
     buildBar();
 
-    // 恢复上次的缩放比例
+    // Restore the last zoom level
     var saved = 1;
-    try { saved = parseFloat(localStorage.getItem(ZOOM_STORE)) || 1; } catch (e) { /* 忽略 */ }
+    try { saved = parseFloat(localStorage.getItem(ZOOM_STORE)) || 1; } catch (e) { /* ignore */ }
     applyZoom(saved, true);
     if (zoom !== 1) zoomVal.textContent = Math.round(zoom * 100) + '%';
     else zoomVal.textContent = '100%';
@@ -298,7 +298,7 @@
     bindFrameTouch();
     if (window.DW && DW.state && DW.state.on) DW.state.on('design-loaded', function () { setTimeout(bindFrameTouch, 0); });
 
-    // 从宽屏切到窄屏（或旋屏）时刷新控制条状态
+    // Refresh the control bar state when switching from wide to narrow (or rotating)
     var onMq = function () {
       closeMenu();
       applyZoom(zoom, true);
@@ -307,7 +307,7 @@
     else if (MQ.addListener) MQ.addListener(onMq);
 
     if (byId('app') && !document.body.classList.contains('dw-ready')) {
-      // 应用还没启动完成，稍后再补一次（head 元素此时应已存在）
+      // The app has not finished starting yet; try again a bit later (the head elements should exist by then)
       setTimeout(function () { injectToggles(); bindFrameTouch(); }, 600);
     }
   }
@@ -319,7 +319,7 @@
 
   ready(boot);
 
-  // 供自动化测试 / 调试使用
+  // For automated tests / debugging
   window.DWMobile = {
     toggleUnit: toggleUnit,
     setAll: setAll,

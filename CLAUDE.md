@@ -1,20 +1,20 @@
-# LS-DW 项目说明（给 AI 助手）
+# LS-DW Project Notes (for AI assistants)
 
-类 Dreamweaver 网页可视化编辑器，用于上海高校计算机一级 DW 操作练习。
-Electron 33 + 原生 HTML/CSS/JS，无框架。见 README.md。
+A Dreamweaver-like visual web page editor for practicing Shanghai college Computer Level 1 DW operations.
+Electron 33 + vanilla HTML/CSS/JS, no framework. See README.md.
 
-## 关键约定
+## Key conventions
 
-- 渲染进程脚本按依赖顺序在 index.html 底部加载，全部挂 window 全局（无 ESM），模块间运行时互相引用
-- 设计视图是 iframe(srcdoc)；**所有 DOM 操作必须走 DomOps/Editor 层**，改完必须调用 `App.afterMutation({commit})` 同步代码视图与撤销栈（commit:true=立即入栈，false=500ms 防抖合并）
-- 导出必须干净：Serialize.cleanClone 剔除 data-dw-*、contenteditable、#dw-editor-style、tbody，还原被抽离的 <script>（设计视图不执行脚本）
-- 属性面板字段全部写 HTML 属性（bgcolor/align/size 等），匹配考试答案风格；字体用 <font face size color> 包裹行内内容，块级内容退化为 CSS
-- 表格操作基于 buildGrid 网格算法，colspan/rowspan 必须保持网格一致性
-- IPC 白名单在 preload.js；fs/path 操作渲染进程一律走 dwAPI（async，注意 await）
+- Renderer scripts load at the bottom of index.html in dependency order and are all attached to window globals (no ESM); modules reference each other at runtime
+- The design view is an iframe (srcdoc); **all DOM operations must go through the DomOps/Editor layer**, and after every change you must call `App.afterMutation({commit})` to sync the code view and the undo stack (commit:true = push immediately, false = 500ms debounce/merge)
+- Exports must be clean: Serialize.cleanClone strips data-dw-*, contenteditable, #dw-editor-style and tbody, and restores the extracted <script> (the design view does not execute scripts)
+- Properties panel fields all write HTML attributes (bgcolor/align/size etc.), matching the exam answer style; fonts wrap inline content in <font face size color>, while block-level content falls back to CSS
+- Table operations are based on the buildGrid grid algorithm; colspan/rowspan must keep the grid consistent
+- The IPC whitelist is in preload.js; renderer fs/path operations always go through dwAPI (async, remember await)
 
-## 环境注意（本机）
+## Environment notes (local machine)
 
-- 用户系统环境变量残留 `ELECTRON_RUN_AS_NODE=1`（会让 Electron 退化为纯 Node）；start 脚本与测试 helpers 已自动剥离
-- main.js 已 `app.disableHardwareAcceleration()`，修复本机 GPU 导致渲染进程间歇崩溃
-- 测试用 Playwright 启动真实应用：`npm run test:main` / `npm run test:advanced`
-- 依赖走国内镜像（.npmrc 已配置）
+- The user's system environment variables contain a leftover `ELECTRON_RUN_AS_NODE=1` (which degrades Electron to plain Node); the start script and test helpers strip it automatically
+- main.js calls `app.disableHardwareAcceleration()`, fixing intermittent renderer crashes caused by the local GPU
+- Tests use Playwright to launch the real app: `npm run test:main` / `npm run test:advanced`
+- Dependencies use a domestic mirror (.npmrc is configured)
